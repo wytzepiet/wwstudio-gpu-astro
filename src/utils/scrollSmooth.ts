@@ -17,7 +17,7 @@ export function initScrollSmooth() {
 
   return ScrollSmoother.create({
     smooth: 2,
-    effects: true,
+    smoothTouch: 0.5,
     onUpdate: (smooth) => {
       scrollSmooth.progress = smooth.progress;
       scrollSmooth.top = smooth.progress * (document.body.scrollHeight - window.innerHeight);

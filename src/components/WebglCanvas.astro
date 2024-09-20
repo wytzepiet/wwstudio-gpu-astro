@@ -10,9 +10,9 @@ interface Props {
 	import { createRadialGradientTexture } from '../utils/webgl/createRadialGradient';
 	import { initializeBloomEffect } from '../utils/webgl/bloomPass';
 	import { scrollSmooth } from '../utils/scrollSmooth';
-	import { timeout } from '../utils/generalUtils';
+	import { queryFirst, timeout } from '../utils/generalUtils';
 
-	const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+	const canvas = queryFirst('#canvas') as HTMLCanvasElement;
 	const delayAttribute = canvas.getAttribute('data-delay');
 	const delay = delayAttribute ? parseFloat(delayAttribute) : 0;
 
