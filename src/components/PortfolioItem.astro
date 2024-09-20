@@ -1,0 +1,20 @@
+---
+import { Image } from 'astro:assets';
+
+interface Props {
+	image: ImageMetadata;
+	title: string;
+	description: string;
+	tags: string[];
+}
+---
+
+<div class="item absolute inset-0 flex flex-col items-center justify-center">
+	<Image src={Astro.props.image} alt="" class="w-[400px]" sizes="1000px" width={1000} />
+	<br />
+	<h2 class="text-5xl">{Astro.props.title}</h2>
+	<p>{Astro.props.description}</p>
+	<div class="flex gap-2">
+		{Astro.props.tags.map((tag) => <div class="border px-1 leading-4">{tag}</div>)}
+	</div>
+</div>
