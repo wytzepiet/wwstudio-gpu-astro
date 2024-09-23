@@ -4,7 +4,9 @@ export default {
 	theme: {
 		extend: {
 			fontFamily: {
-				moneta: ['Moneta', 'sans-serif']
+				moneta: ['Moneta', 'serif'],
+				archive: ['Archive', 'sans-serif'],
+				hero: ['Hero', 'sans-serif'],
 			}
 		}
 	},

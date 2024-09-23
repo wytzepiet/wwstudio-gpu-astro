@@ -185,7 +185,7 @@ void main() {
                     vec3 diff = pos - a_position;
                     float distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
          
-                    if(distSq > viewDistSq || distSq < 0.1) continue;
+                    if(distSq > viewDistSq || distSq < 0.05) continue;
 
                     float factor = u_viewDist / distSq;
 
@@ -205,15 +205,15 @@ void main() {
 
     cohesion /= max(count, 8.0);
 
-    separate *= 0.06;
+    separate *= 0.08;
     align *= 0.35;
-    cohesion *= 0.05;
+    cohesion *= 0.06;
 
     vec3 flockForce = separate + align + cohesion;
     
     vec3 seekForce = vec3(u_target.xy, 0.0) - a_position; 
     seekForce = normalize(seekForce);
-    seekForce *= 0.5;
+    seekForce *= 0.8;
 
     float countFactor = 30.0 / count;
     countFactor = clamp(countFactor, 1.0, 2.0);

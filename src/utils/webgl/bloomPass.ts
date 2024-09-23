@@ -1,7 +1,7 @@
 export function initializeBloomEffect(
 	gl: WebGL2RenderingContext,
 	resolution: { x: number; y: number },
-	strength: number = 3,
+	strength: number = 2,
 	radius: number = 0.8
 ) {
 	const nMips = 5; // Number of mip levels
@@ -109,10 +109,10 @@ export function initializeBloomEffect(
 			bloom.rgb = increaseSaturation(bloom.rgb, 2.0); 
 			
 			
-			scene *= 8.0;
+			scene *= 6.0;
 
 
-			vec4 result = max(bloom, scene);
+			vec4 result = scene + bloom;
 			if(result.a < 0.02) discard;
 			gl_FragColor = result;	
 

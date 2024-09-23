@@ -1,12 +1,13 @@
 ---
 import WebglCanvas from '../components/WebglCanvas.astro';
 
-import Me from '../images/me.jpeg';
+import Me from '../images/me2.png';
 import Luca from '../images/luca.png';
 import Suiker from '../images/suiker.jpg';
 import Podwalk from '../images/podwalk.jpg';
 import Prins from '../images/prins.png';
 import CatchControl from '../images/catchcontrol.webp';
+import Sky from '../images/sky.webp';
 
 import PortfolioItem from '../components/PortfolioItem.astro';
 import Layout from '../layouts/Layout.astro';
@@ -23,16 +24,22 @@ import { Image } from 'astro:assets';
 	gsap.registerPlugin(SplitText, ScrollTrigger, ScrollSmoother);
 
 	console.log('Hello from Astro!');
-	ScrollTrigger.create({
-		trigger: '.canvas',
-		start: 'top top',
-		end: document.body.scrollHeight,
-		pin: true
-	});
+
+	gsap
+		.timeline({
+			duration: 1,
+			scrollTrigger: {
+				trigger: '.canvas',
+				start: 'top top',
+				end: document.body.scrollHeight,
+				pin: true,
+				scrub: 0
+			}
+		})
+		.to('.canvas', { duration: 0.1, opacity: 0, ease: 'linear' }, '-=100%');
 
 	gsap.to('.home-title', {
-		scale: 2,
-		opacity: 0,
+		translateZ: 100,
 		pointerEvents: 'none',
 		ease: 'linear',
 		scrollTrigger: { trigger: '.home-title-wrapper', end: '300px', pin: true, scrub: 0 }
@@ -67,11 +74,14 @@ import { Image } from 'astro:assets';
 		</div>
 	</div>
 
-	<div class="home-title-wrapper h-screen w-full top-0 z-30">
+	<div
+		class="home-title-wrapper h-screen w-full top-0 z-30"
+		style="perspective: 100px; transform-style: preserve-3d;"
+	>
 		<div
-			class="home-title absolute inset-0 flex flex-col items-center justify-end bg-gradient-to-t from-black/75 via-transparent"
+			class="home-title absolute inset-0 flex flex-col items-center justify-end bg-gradient-to-t from-black/25 via-transparent"
 		>
-			<h1 class="text-7xl h-full flex flex-col justify-end">
+			<h1 class="text-9xl uppercase h-full flex flex-col justify-end">
 				<div>Dream it,</div>
 				<div>I'll build it.</div>
 			</h1>
@@ -86,7 +96,7 @@ import { Image } from 'astro:assets';
 		<div
 			class="item absolute inset-0 text-xl text-center flex flex-col items-center justify-center"
 		>
-			<Image src={Me} alt="" class="w-32" width={600} />
+			<Image src={Me} alt="" class="w-32 rounded" width={600} />
 			<br />
 			<p>Hey there! I'm Wytze.</p>
 			<p>A freelance computer nerd</p>
@@ -114,7 +124,7 @@ import { Image } from 'astro:assets';
 		/>
 		<PortfolioItem
 			image={Suiker}
-			title="Nationaal Suikerbietenarchief"
+			title="Nationaal Suikerbieten archief"
 			description="An arhcive website about the history of Dutch sugar industry"
 			tags={['Web design']}
 		/>
@@ -136,5 +146,7 @@ import { Image } from 'astro:assets';
 			description="A monitoring app for nature enthousiasts"
 			tags={['App design']}
 		/>
+		<div class="item"></div>
+		<div class="item"></div>
 	</div>
 </Layout>

@@ -7,14 +7,17 @@ interface Props {
 	description: string;
 	tags: string[];
 }
+
+const { image, title, description, tags } = Astro.props;
 ---
 
-<div class="item absolute inset-0 flex flex-col items-center justify-center">
-	<Image src={Astro.props.image} alt="" class="w-[400px]" sizes="1000px" width={1000} />
-	<br />
-	<h2 class="text-5xl">{Astro.props.title}</h2>
-	<p>{Astro.props.description}</p>
-	<div class="flex gap-2">
-		{Astro.props.tags.map((tag) => <div class="border px-1 leading-4">{tag}</div>)}
+<div class="item absolute inset-0 p-20 flex gap-4 flex-col items-center justify-center">
+	<Image src={image} alt={title} class="w-52 rounded grayscale" width={2000} />
+	<div class="text-center max-w-md flex flex-col items-center">
+		<div class="flex gap-2 font-hero text-xs uppercase">
+			{tags.map((tag) => <div class="px-1 leading-4 rounded bg-gray-300 text-black">{tag}</div>)}
+		</div>
+		<h2 class="text-5xl uppercase">{title}</h2>
+		<p class="font-hero">{description}</p>
 	</div>
 </div>

@@ -62,12 +62,12 @@ interface Props {
 		// gl.uniform3f(uLoc('u_color2'), ...hexToRgb('#03001e'));
 
 		//gold to blue greeny
-		// gl.uniform3f(uLoc('u_color1'), ...hexToRgb('#60dcbb'));
-		// gl.uniform3f(uLoc('u_color2'), ...hexToRgb('#3f083f'));
+		gl.uniform3f(uLoc('u_color1'), ...hexToRgb('#315492'));
+		gl.uniform3f(uLoc('u_color2'), ...hexToRgb('#290529'));
 
 		//gold red
-		gl.uniform3f(uLoc('u_color1'), ...hexToRgb('#b47a2d'));
-		gl.uniform3f(uLoc('u_color2'), ...hexToRgb('#5b0b0b'));
+		// gl.uniform3f(uLoc('u_color1'), ...hexToRgb('#b47a2d'));
+		// gl.uniform3f(uLoc('u_color2'), ...hexToRgb('#5b0b0b'));
 
 		// gl.uniform3f(uLoc('u_color1'), ...hexToRgb('#a4c3c5'));
 		// gl.uniform3f(uLoc('u_color2'), ...hexToRgb('#022c19'));
@@ -209,8 +209,8 @@ interface Props {
 
 		for (let i = 0; i < NUM_BOIDS * 3; i += 3) {
 			const vec = randomVec();
-			velocities.set([...vec], i);
-			positions.set([...vec], i);
+			// velocities.set([...randomVec()], i);
+			positions.set([...randomVec().multiplyScalar(500)], i);
 		}
 
 		const buffers = data.map((data) => [createBuffer(gl, data), createBuffer(gl, data)]);
@@ -317,7 +317,7 @@ interface Props {
 				gl.uniform1i(uLoc('u_velGridTex'), 2);
 
 				gl.clear(gl.DEPTH_BUFFER_BIT);
-				gl.enable(gl.DEPTH_TEST);
+				// gl.enable(gl.DEPTH_TEST);
 
 				gl.enable(gl.BLEND);
 				gl.blendFunc(gl.SRC_ALPHA, gl.ONE);

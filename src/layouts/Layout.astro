@@ -14,7 +14,8 @@ const { title } = Astro.props;
 
 	const scrollSmoother = initScrollSmooth();
 
-	scrollSmoother.scrollTop(0);
+	timeout(10).then(() => scrollSmoother.scrollTo(1300, false));
+	timeout(2000).then(() => scrollSmoother.scrollTo(0, true));
 
 	document.body.style.overflow = 'hidden';
 	timeout(2000).then(() => (document.body.style.overflow = 'auto'));
@@ -42,9 +43,9 @@ const { title } = Astro.props;
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 	</head>
-	<body class="font-moneta">
+	<body class="font-archive bg-black text-white">
 		<nav
-			class="nav fixed z-30 w-full flex justify-between p-4 text-sm uppercase text-white tracking-widest"
+			class="nav fixed z-30 w-full flex justify-between p-4 text-sm font-hero uppercase tracking-widest"
 		>
 			<h2 class="">Wytze Sligting</h2>
 			<div>
@@ -77,9 +78,13 @@ const { title } = Astro.props;
 		);
 	}
 	body {
-		background-color: black;
-		color: white;
 		overflow-x: hidden;
+	}
+
+	@font-face {
+		font-family: 'Archive';
+		font-style: normal;
+		src: url('/fonts/archive/Archive-Regular.otf') format('opentype');
 	}
 
 	@font-face {
