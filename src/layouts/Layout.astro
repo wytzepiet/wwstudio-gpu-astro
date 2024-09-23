@@ -1,4 +1,7 @@
 ---
+import WebglCanvas from '@/components/WebglCanvas.astro';
+import '../globals.css';
+
 interface Props {
 	title: string;
 }
@@ -7,6 +10,8 @@ const { title } = Astro.props;
 ---
 
 <script>
+	import '@fontsource-variable/jetbrains-mono';
+	import '@fontsource/space-mono';
 	import gsap from 'gsap';
 	import { queryFirst, timeout } from '../utils/generalUtils';
 	import { initScrollSmooth } from '../utils/scrollSmooth';
@@ -14,11 +19,11 @@ const { title } = Astro.props;
 
 	const scrollSmoother = initScrollSmooth();
 
-	timeout(10).then(() => scrollSmoother.scrollTo(1300, false));
-	timeout(2000).then(() => scrollSmoother.scrollTo(0, true));
+	// timeout(10).then(() => scrollSmoother.scrollTo(1300, false));
+	// timeout(2000).then(() => scrollSmoother.scrollTo(0, true));
 
-	document.body.style.overflow = 'hidden';
-	timeout(2000).then(() => (document.body.style.overflow = 'auto'));
+	// document.body.style.overflow = 'hidden';
+	// timeout(2000).then(() => (document.body.style.overflow = 'auto'));
 
 	queryFirst('#smooth-content')!.style.opacity = '1';
 
@@ -43,7 +48,7 @@ const { title } = Astro.props;
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 	</head>
-	<body class="font-archive bg-black text-white">
+	<body class="dark font-archive bg-background text-foreground">
 		<nav
 			class="nav fixed z-30 w-full flex justify-between p-4 text-sm font-hero uppercase tracking-widest"
 		>
@@ -55,141 +60,7 @@ const { title } = Astro.props;
 			</div>
 			<h2 class="">Let's talk</h2>
 		</nav>
-		<div id="smooth-wrapper">
-			<div id="smooth-content" class="opacity-0 overflow-x-hidden">
-				<div class="w-screen overflow-x-hidden">
-					<slot />
-				</div>
-			</div>
-		</div>
+
+		<slot />
 	</body>
 </html>
-
-<style is:global>
-	:root {
-		--accent: 136, 58, 234;
-		--accent-light: 224, 204, 250;
-		--accent-dark: 49, 10, 101;
-		--accent-gradient: linear-gradient(
-			45deg,
-			rgb(var(--accent)),
-			rgb(var(--accent-light)) 30%,
-			white 60%
-		);
-	}
-	body {
-		overflow-x: hidden;
-	}
-
-	@font-face {
-		font-family: 'Archive';
-		font-style: normal;
-		src: url('/fonts/archive/Archive-Regular.otf') format('opentype');
-	}
-
-	@font-face {
-		font-family: 'Hero';
-		font-weight: light;
-		src: url('/fonts/hero/Hero-Light.otf') format('opentype');
-	}
-	@font-face {
-		font-family: 'Hero';
-		font-weight: normal;
-		src: url('/fonts/hero/Hero-Regular.otf') format('opentype');
-	}
-	@font-face {
-		font-family: 'Hero';
-		font-weight: bold;
-		src: url('/fonts/hero/Hero-Bold.otf') format('opentype');
-	}
-
-	@font-face {
-		font-family: 'Archive';
-		font-style: normal;
-		src: url('/fonts/archive/Archive-Regular.otf') format('opentype');
-	}
-
-	@font-face {
-		font-family: 'Stannum';
-		font-weight: light;
-		src: url('/fonts/stannum/Stannum-Light.otf') format('opentype');
-	}
-
-	@font-face {
-		font-family: 'Stannum';
-		font-weight: normal;
-		src: url('/fonts/stannum/Stannum-Regular.otf') format('opentype');
-	}
-
-	@font-face {
-		font-family: 'Stannum';
-		font-weight: medium;
-		src: url('/fonts/stannum/Stannum-Medium.otf') format('opentype');
-	}
-
-	@font-face {
-		font-family: 'Stannum';
-		font-weight: bold;
-		src: url('/fonts/stannum/Stannum-Bold.otf') format('opentype');
-	}
-
-	@font-face {
-		font-family: 'Moneta';
-		src: url('/fonts/moneta/Moneta-Black.eot');
-		src:
-			local('Moneta Black'),
-			local('Moneta-Black'),
-			url('/fonts/moneta/Moneta-Black.eot?#iefix') format('embedded-opentype'),
-			url('/fonts/moneta/Moneta-Black.woff2') format('woff2'),
-			url('/fonts/moneta/Moneta-Black.woff') format('woff'),
-			url('/fonts/moneta/Moneta-Black.ttf') format('truetype');
-		font-weight: 900;
-		font-style: normal;
-		font-display: swap;
-	}
-
-	@font-face {
-		font-family: 'Moneta';
-		src: url('/fonts/moneta/Moneta-Bold.eot');
-		src:
-			local('Moneta Bold'),
-			local('Moneta-Bold'),
-			url('/fonts/moneta/Moneta-Bold.eot?#iefix') format('embedded-opentype'),
-			url('/fonts/moneta/Moneta-Bold.woff2') format('woff2'),
-			url('/fonts/moneta/Moneta-Bold.woff') format('woff'),
-			url('/fonts/moneta/Moneta-Bold.ttf') format('truetype');
-		font-weight: bold;
-		font-style: normal;
-		font-display: swap;
-	}
-
-	@font-face {
-		font-family: 'Moneta';
-		src: url('/fonts/moneta/Moneta-Regular.eot');
-		src:
-			local('Moneta'),
-			local('Moneta-Regular'),
-			url('/fonts/moneta/Moneta-Regular.eot?#iefix') format('embedded-opentype'),
-			url('/fonts/moneta/Moneta-Regular.woff2') format('woff2'),
-			url('/fonts/moneta/Moneta-Regular.woff') format('woff'),
-			url('/fonts/moneta/Moneta-Regular.ttf') format('truetype');
-		font-weight: normal;
-		font-style: normal;
-		font-display: swap;
-	}
-
-	@font-face {
-		font-family: 'Moneta';
-		src: url('/fonts/moneta/Moneta-Light.eot');
-		src:
-			local('Moneta Light'),
-			local('Moneta-Light'),
-			url('/fonts/moneta/Moneta-Light.eot?#iefix') format('embedded-opentype'),
-			url('/fonts/moneta/Moneta-Light.woff2') format('woff2'),
-			url('/fonts/moneta/Moneta-Light.woff') format('woff'),
-			url('/fonts/moneta/Moneta-Light.ttf') format('truetype');
-		font-weight: 300;
-		font-style: normal;
-		font-display: swap;
-	}
-</style>

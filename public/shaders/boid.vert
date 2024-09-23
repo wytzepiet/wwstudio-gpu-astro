@@ -104,7 +104,9 @@ vec2 texCoord(vec3 gridPos, float count) {
 }
 
 vec4 project(vec3 worldPos) {
-    return u_projectionMatrix * u_viewMatrix * vec4(worldPos, 1.0);
+    // return u_projectionMatrix * u_viewMatrix * vec4(worldPos, 1.0);
+    vec4 view = u_inverseViewMatrix * vec4(worldPos, 1.0);
+    return u_projectionMatrix * view;
 }
 
 vec3 unproject(vec2 screenPos, float depth) {
@@ -119,7 +121,7 @@ vec3 unproject(vec2 screenPos, float depth) {
     vec4 viewSpace = u_inverseProjectionMatrix * vec4(clipPos, clipDepth, 1.0);
     viewSpace.rgb /= viewSpace.a;
     viewSpace.a = 1.0;
-    vec3 worldPos = (u_inverseViewMatrix * viewSpace).xyz;
+    vec3 worldPos = (u_viewMatrix * viewSpace).xyz;
     worldPos.x *= -1.0;
     return worldPos;
 }
@@ -205,13 +207,13 @@ void main() {
 
     cohesion /= max(count, 8.0);
 
-    separate *= 0.08;
-    align *= 0.35;
-    cohesion *= 0.06;
+    separate *= 0.1;
+    align *= 0.4;
+    cohesion *= 0.08;
 
     vec3 flockForce = separate + align + cohesion;
     
-    vec3 seekForce = vec3(u_target.xy, 0.0) - a_position; 
+    vec3 seekForce = u_target - a_position; 
     seekForce = normalize(seekForce);
     seekForce *= 0.8;
 

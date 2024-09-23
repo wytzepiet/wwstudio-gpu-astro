@@ -1,13 +1,13 @@
 ---
 import WebglCanvas from '../components/WebglCanvas.astro';
+import { Card } from '@/components/ui/card';
 
 import Me from '../images/me2.png';
 import Luca from '../images/luca.png';
-import Suiker from '../images/suiker.jpg';
+import Suiker from '../images/archief.png';
 import Podwalk from '../images/podwalk.jpg';
 import Prins from '../images/prins.png';
 import CatchControl from '../images/catchcontrol.webp';
-import Sky from '../images/sky.webp';
 
 import PortfolioItem from '../components/PortfolioItem.astro';
 import Layout from '../layouts/Layout.astro';
@@ -25,18 +25,17 @@ import { Image } from 'astro:assets';
 
 	console.log('Hello from Astro!');
 
-	gsap
-		.timeline({
-			duration: 1,
-			scrollTrigger: {
-				trigger: '.canvas',
-				start: 'top top',
-				end: document.body.scrollHeight,
-				pin: true,
-				scrub: 0
-			}
-		})
-		.to('.canvas', { duration: 0.1, opacity: 0, ease: 'linear' }, '-=100%');
+	// gsap.timeline({
+	// 	duration: 1,
+	// 	scrollTrigger: {
+	// 		trigger: '.canvas',
+	// 		start: 'top top',
+	// 		end: document.body.scrollHeight * 100,
+	// 		pin: true,
+	// 		scrub: 0
+	// 	}
+	// });
+	// .to('.canvas', { duration: 0.1, opacity: 0, ease: 'linear' }, '-=100%');
 
 	gsap.to('.home-title', {
 		translateZ: 100,
@@ -44,109 +43,143 @@ import { Image } from 'astro:assets';
 		ease: 'linear',
 		scrollTrigger: { trigger: '.home-title-wrapper', end: '300px', pin: true, scrub: 0 }
 	});
-	gsap.from('.home-title h1', { duration: 5, delay: 1.5, ease: 'power4.out', scale: 0.7 });
-	gsap.from('.home-title h1', { duration: 5, delay: 1.5, opacity: 0 });
+	gsap.from('.home-title h1', { duration: 2, delay: 1.5, ease: 'power4.out', scale: 0.2 });
+	gsap.from('.home-title h1', { duration: 1, delay: 1.5, opacity: 0 });
 
 	const ScrollTlItems = query('.scroll-timeline .item');
-	const ScrollTl = gsap.timeline({
+	const tl = gsap.timeline({
 		scrollTrigger: {
 			trigger: '.scroll-timeline',
 			start: 'center center',
-			end: `+=${ScrollTlItems.length * 400}px`,
+			end: `+=${ScrollTlItems.length * 600}px`,
 			pin: true,
 			scrub: 0
 		}
 	});
-	ScrollTlItems.forEach((item, i) => {
-		ScrollTl.from(item, { duration: 1, translateZ: -60, ease: 'linear' });
-		ScrollTl.from(item, { duration: 0.5, opacity: 0, ease: 'linear' }, '<');
-		if (i === ScrollTlItems.length - 1) return;
-		ScrollTl.to(item, { duration: 1, translateZ: 60, ease: 'linear' })
-			.to(item, { duration: 0.5, opacity: 0, ease: 'linear' }, '<+0.5')
-			.to(item, { duration: 0.0001, pointerEvents: 'none' });
+	tl.to('#smooth-wrapper', { duration: 0.001, zIndex: 30 });
+	tl.to('.canvas', { duration: 0.5, filter: 'blur(20px)' });
+
+	ScrollTlItems.forEach((item) => {
+		const onStart = () => {
+			const ease = 'power4.out';
+			const image = item.querySelector('.image');
+			if (image) gsap.from(image, { duration: 1, ease, rotate: 5, scale: 0.4 });
+
+			const { words } = new SplitText(item.querySelector('.animate-text'), { type: 'words' });
+			const clipPath = 'inset(0 0 100% 0)';
+			const stagger = item.classList.contains('about') ? 0.03 : 0.05;
+			gsap.from(words, { duration: 1, y: '100%', rotate: 5, clipPath, ease, stagger });
+
+			const info = item.querySelector('.info');
+			if (info) gsap.from(info, { duration: 1, scale: 0.5, ease });
+		};
+		const ease = 'linear';
+		tl.from(item, { duration: 1, translateZ: -60, ease, onStart });
+		tl.from(item, { duration: 0.5, opacity: 0, ease }, '<');
+		tl.to(item, { duration: 1, translateZ: 60, ease });
+		tl.to(item, { duration: 0.5, opacity: 0, ease }, '<+0.5');
+		tl.to(item, { duration: 0.0001, pointerEvents: 'none' });
 	});
+	tl.to('.canvas', { duration: 1, filter: 'blur(0px)' });
 </script>
 
 <Layout title="">
-	<div class="pointer-events-none">
-		<div class="canvas absolute top-0 z-20">
-			<WebglCanvas delay={500} />
-		</div>
+	<div class="canvas fixed pointer-events-none top-0 z-20">
+		<WebglCanvas delay={500} />
 	</div>
-
 	<div
-		class="home-title-wrapper h-screen w-full top-0 z-30"
+		class="home-title-wrapper fixed h-screen w-full top-0 z-30"
 		style="perspective: 100px; transform-style: preserve-3d;"
 	>
 		<div
 			class="home-title absolute inset-0 flex flex-col items-center justify-end bg-gradient-to-t from-black/25 via-transparent"
 		>
-			<h1 class="text-9xl uppercase h-full flex flex-col justify-end">
+			<h1 class="text-5xl sm:text-7xl md:text-9xl uppercase h-full flex flex-col justify-end">
 				<div>Dream it,</div>
 				<div>I'll build it.</div>
 			</h1>
 		</div>
 	</div>
-
-	<div class="h-[200px]"></div>
-	<div
-		class="scroll-timeline relative w-full h-screen"
-		style="perspective: 100px; transform-style: preserve-3d;"
-	>
-		<div
-			class="item absolute inset-0 text-xl text-center flex flex-col items-center justify-center"
-		>
-			<Image src={Me} alt="" class="w-32 rounded" width={600} />
-			<br />
-			<p>Hey there! I'm Wytze.</p>
-			<p>A freelance computer nerd</p>
-			<p>with an eye for design. I love</p>
-			<p>to make an idea come to life.</p>
-			<!-- <p>Send me an email.</p>
+	<div id="smooth-wrapper">
+		<div id="smooth-content" class="opacity-0 overflow-x-hidden">
+			<div class="w-screen overflow-x-hidden">
+				<div class="h-screen"></div>
+				<div class="h-[200px]"></div>
+				<div
+					class="scroll-timeline relative w-full h-screen"
+					style="perspective: 100px; transform-style: preserve-3d;"
+				>
+					<div
+						class="item about absolute inset-0 text-xl text-center flex flex-col items-center justify-center"
+					>
+						<Card className="image overflow-hidden">
+							<Image src={Me} alt="" class="w-32 mix-blend-screen" width={600} />
+						</Card>
+						<br />
+						<div class="animate-text">
+							<p>Hey! I'm Wytze.</p>
+							<p>A freelance computer nerd</p>
+							<p>with an eye for design. I love</p>
+							<p>to make an idea come to life.</p>
+						</div>
+						<!-- <p>Send me an email.</p>
 			<p>I'll be friendly!</p>
 			<a href="/" class="underline">info@wytze.dev</a> -->
-		</div>
+					</div>
 
-		<div class="item absolute inset-0 flex items-center justify-center">
-			<h1 class="text-9xl uppercase grid grid-cols-2 text-center">
-				<div class="m-[-0.8rem]">w</div>
-				<div class="m-[-0.8rem]">o</div>
-				<div class="m-[-0.8rem]">r</div>
-				<div class="m-[-0.8rem]">k</div>
-			</h1>
-		</div>
+					<div class="item absolute inset-0 flex items-center justify-center">
+						<h1 class="animate-text text-9xl uppercase grid grid-cols-2 text-center">
+							<div class="m-[-0.8rem]">w</div>
+							<div class="m-[-0.8rem]">o</div>
+							<div class="m-[-0.8rem]">r</div>
+							<div class="m-[-0.8rem]">k</div>
+						</h1>
+					</div>
 
-		<PortfolioItem
-			image={Luca}
-			title="Snakken naar Tichelaar"
-			description="A rebellious exhibition about ceramics"
-			tags={['Graphic design']}
-		/>
-		<PortfolioItem
-			image={Suiker}
-			title="Nationaal Suikerbieten archief"
-			description="An arhcive website about the history of Dutch sugar industry"
-			tags={['Web design']}
-		/>
-		<PortfolioItem
-			image={Podwalk}
-			title="Podwalk"
-			description="A historical GPS guided audiotour"
-			tags={['Web design', 'App design']}
-		/>
-		<PortfolioItem
-			image={Prins}
-			title="Café de Prins"
-			description="Revamping an iconic café and hotel"
-			tags={['Web design', 'Graphic design']}
-		/>
-		<PortfolioItem
-			image={CatchControl}
-			title="Catch Control"
-			description="A monitoring app for nature enthousiasts"
-			tags={['App design']}
-		/>
-		<div class="item"></div>
-		<div class="item"></div>
+					<PortfolioItem
+						image={Luca}
+						title="Snakken naar Tichelaar"
+						description="A rebellious exhibition about ceramics"
+						tags={['Graphic design', 'Exposition design', 'Curation']}
+					/>
+					<PortfolioItem
+						image={Suiker}
+						title="Nationaal Suikerbieten archief"
+						description="An arhcive website about the history of Dutch sugar industry"
+						tags={['Web app', 'Solid.js', 'Supabase', 'Mux video']}
+					/>
+					<PortfolioItem
+						image={Podwalk}
+						title="Podwalk"
+						description="A historical GPS guided audiotour"
+						tags={['Mobile app', 'Flutter', 'GPS tracking', 'Narration & sound design']}
+					/>
+					<PortfolioItem
+						image={Prins}
+						title="Café de Prins"
+						description="Revamping an iconic café and hotel"
+						tags={['Interior design', 'Brand identity', 'Graphic design']}
+					/>
+					<PortfolioItem
+						image={CatchControl}
+						title="Catch Control"
+						description="A monitoring app for nature enthousiasts"
+						tags={['Mobile app', 'Flutter', 'Firebase', 'Hardware integration']}
+					/>
+					<div class="item absolute inset-0 flex flex-col items-center justify-center">
+						<div class="animate-text">
+							<h2 class="text-9xl uppercase">Let's<br />chat!</h2>
+
+							<p class="font-hero text-muted-foreground">
+								Contact me for full time jobs, <br />
+								freelance projects or just to say hello :-)
+							</p>
+							<a href="/" class="font-hero">hello@wytze.dev</a>
+						</div>
+					</div>
+				</div>
+				<div class="h-screen"></div>
+			</div>
+		</div>
 	</div>
 </Layout>

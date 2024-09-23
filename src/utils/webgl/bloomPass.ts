@@ -1,7 +1,7 @@
 export function initializeBloomEffect(
 	gl: WebGL2RenderingContext,
 	resolution: { x: number; y: number },
-	strength: number = 2,
+	strength: number = 4,
 	radius: number = 0.8
 ) {
 	const nMips = 5; // Number of mip levels
@@ -24,7 +24,7 @@ export function initializeBloomEffect(
 
 	const dimFragmentShaderSource = `
 		void main() {
-			gl_FragColor = vec4(0.0, 0.0, 0.0, 0.6);
+			gl_FragColor = vec4(0.01, 0.01, 0.01, 0.3);
 		}
 	`;
 
@@ -94,7 +94,7 @@ export function initializeBloomEffect(
         void main() {
 			vec2 texcoord = gl_FragCoord.xy / u_resolution;
 
-			vec4 scene = texture2D(sceneTexture, texcoord) * 1.0;
+			vec4 scene = texture2D(sceneTexture, texcoord);
 
             vec4 bloom = bloomStrength * (
                 lerpBloomFactor(bloomFactors[0]) * vec4(bloomTintColors[0], 1.0) * texture2D(blurTexture1, texcoord) +
@@ -104,16 +104,13 @@ export function initializeBloomEffect(
                 lerpBloomFactor(bloomFactors[4]) * vec4(bloomTintColors[4], 1.0) * texture2D(blurTexture5, texcoord)
             );
 			
-			
-			bloom.rgb = mapToAsymptote(bloom.rgb, 1.0, 1.0);
-			bloom.rgb = increaseSaturation(bloom.rgb, 2.0); 
-			
-			
-			scene *= 6.0;
-
+		
+			bloom.rgb = increaseSaturation(bloom.rgb, 2.5); 
+			scene *= 10.0;
 
 			vec4 result = scene + bloom;
-			if(result.a < 0.02) discard;
+			result.rgb = mapToAsymptote(result.rgb, 1.1, 1.0);
+			
 			gl_FragColor = result;	
 
         }
@@ -243,13 +240,17 @@ export function initializeBloomEffect(
 		gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFBO.framebuffer);
 
 		gl.useProgram(dimProgram);
-		gl.blendFunc(gl.ZERO, gl.SRC_ALPHA);
+		gl.blendEquation(gl.FUNC_REVERSE_SUBTRACT);
+		gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 		drawQuad(gl, dimProgram);
+
+		gl.blendEquation(gl.FUNC_ADD);
 
 		renderFunction();
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.disable(gl.BLEND);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
 	}
 
 	// Function to apply blur
