@@ -26,13 +26,12 @@ import { Image } from 'astro:assets';
 	gsap.from('.home-title h1', { duration: 2, delay: 1.5, ease: 'power4.out', scale: 0.2 });
 	gsap.from('.home-title h1', { duration: 1, delay: 1.5, opacity: 0 });
 
-	const tlItems = query('.scroll-timeline .item');
-
+	const timelineItems = query('.scroll-timeline .item');
 	const tl = gsap.timeline({
 		scrollTrigger: {
 			trigger: '.scroll-trigger',
 			start: 'center center',
-			end: `+=${(tlItems.length + 4) * 500}px`,
+			end: `+=${(timelineItems.length + 4) * 500}px`,
 			pin: true,
 			scrub: 0
 		}
@@ -40,29 +39,25 @@ import { Image } from 'astro:assets';
 	tl.to('.home-title', { duration: 1, translateZ: 60, pointerEvents: 'none', ease: 'linear' });
 	tl.to('.canvas', { duration: 1, filter: 'blur(20px)', opacity: 0 }, '>+2');
 
-	tlItems.forEach((item, i) => {
-		const pop = { duration: 1, ease: 'power4.out' };
+	timelineItems.forEach((item, i) => {
 		const itemTl = gsap.timeline({ paused: true });
-		const img = item.querySelectorAll('.image');
-		if (img) itemTl.from(img, { ...pop, rotate: 5, scale: 0.35 });
+		const pop = { duration: 1, ease: 'power4.out' };
+
+		const img = item.querySelector('.image');
+		if (img) itemTl.from(img, { ...pop, rotate: 5, scale: 0.35 }, '<');
 
 		const { words } = new SplitText(item.querySelector('.animate-text'), { type: 'words' });
 		const stagger = item.classList.contains('about') ? 0.03 : 0.05;
-		const clipPath = 'inset(0 0 100% 0)';
-		itemTl.from(words, { ...pop, y: '100%', rotate: 5, clipPath, stagger }, '<');
+		itemTl.from(words, { ...pop, y: '100%', rotate: 5, clipPath: 'inset(0 0 100% 0)', stagger }, '<');
 
 		const info = item.querySelector('.info');
 		if (info) itemTl.from(info, { ...pop, scale: 0.5 }, '<');
 
-		const onStart = () => {
-			itemTl.restart();
-		};
 		const linear = { ease: 'linear', duration: 1 };
-
-		tl.to(item, { duration: 0.001, visibility: 'visible' });
-		tl.from(item, { ...linear, translateZ: -60, onStart }, i == 0 ? '<' : '>');
+		tl.to(item, { duration: 0.001, visibility: 'visible' }, i == 0 ? '<' : '>');
+		tl.from(item, { ...linear, translateZ: -60, onStart: () => itemTl.restart() as any as void });
 		tl.from(item, { ...linear, duration: 0.5, opacity: 0 }, '<');
-		if (i == tlItems.length - 1) return;
+		if (i == timelineItems.length - 1) return;
 		tl.to(item, { ...linear, translateZ: 60 });
 		tl.to(item, { ...linear, duration: 0.5, opacity: 0 }, '<+0.5');
 		tl.to(item, { ...linear, duration: 0.0001, pointerEvents: 'none' });
@@ -81,15 +76,24 @@ import { Image } from 'astro:assets';
 		<WebglCanvas delay={500} />
 	</div>
 
-	<div class="scroll-timeline fixed top-0 w-full h-screen" style="perspective: 100px; transform-style: preserve-3d;">
-		<div class="home-title absolute inset-0 flex items-end justify-center">
+	<style lang="postcss">
+		.scroll-timeline {
+			perspective: 100px;
+			transform-style: preserve-3d;
+		}
+		.scroll-timeline > div {
+			@apply absolute inset-0 flex flex-col items-center justify-center;
+		}
+	</style>
+	<div class="scroll-timeline fixed top-0 w-full h-screen">
+		<div class="home-title">
 			<div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent"></div>
-			<h1 class="text-4xl sm:text-6xl md:text-8xl uppercase h-full flex flex-col justify-end">
-				<div>I make</div>
-				<div>ideas real</div>
+			<h1 class="text-8xl uppercase h-full flex flex-col justify-end">
+				<div>I build ideas.</div>
+				<div class="text-[0.5em]">One pixel at a time.</div>
 			</h1>
 		</div>
-		<div class="item about absolute inset-0 text-xl text-center flex flex-col items-center justify-center">
+		<div class="item about">
 			<Card className="image overflow-hidden">
 				<Image src={Me} alt="" class="w-32 mix-blend-screen" width={600} />
 			</Card>
@@ -100,19 +104,21 @@ import { Image } from 'astro:assets';
 				<p>with an eye for design. I love</p>
 				<p>to make an idea come to life.</p>
 			</div>
-			<!-- <p>Send me an email.</p>
-			<p>I'll be friendly!</p>
-			<a href="/" class="underline">info@wytze.dev</a> -->
 		</div>
 
-		<div class="item absolute inset-0 flex items-center justify-center">
-			<h1 class="animate-text text-9xl uppercase grid grid-cols-2 text-center">
-				<div class="m-[-0.8rem]">w</div>
-				<div class="m-[-0.8rem]">o</div>
-				<div class="m-[-0.8rem]">r</div>
-				<div class="m-[-0.8rem]">k</div>
+		<div class="item">
+			<h1 class="work animate-text text-9xl uppercase grid grid-cols-2 text-center">
+				<div>w</div>
+				<div>o</div>
+				<div>r</div>
+				<div>k</div>
 			</h1>
 		</div>
+		<style>
+			h1.work > div {
+				margin: calc(-0.4 * var(--var-size));
+			}
+		</style>
 
 		<PortfolioItem
 			image={Luca}
@@ -144,7 +150,8 @@ import { Image } from 'astro:assets';
 			description="A monitoring app for nature enthousiasts"
 			tags={['Mobile app', 'Flutter', 'Firebase', 'Hardware integration']}
 		/>
-		<div class="item absolute inset-0 flex flex-col items-center justify-center">
+
+		<div class="item">
 			<div class="animate-text">
 				<h2 class="text-9xl uppercase">Let's<br />chat</h2>
 

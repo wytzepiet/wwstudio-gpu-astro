@@ -202,7 +202,7 @@ void main() {
         }
     }
 
-    float opacity = (count - 1.0) / 8.0;
+    float opacity = (count - 2.0) / 16.0;
     alpha = min(opacity, 1.0);
 
     cohesion /= max(count, 10.0);
