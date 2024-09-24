@@ -12,7 +12,6 @@ export default {
     			'jetbrains-mono': ['Jetbrains Mono', 'monospace']
     		},
     		colors: {
-    			'muted-foreground': '#6B7280',
     			background: 'hsl(var(--background))',
     			foreground: 'hsl(var(--foreground))',
     			card: {

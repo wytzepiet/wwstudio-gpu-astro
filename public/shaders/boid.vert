@@ -205,7 +205,7 @@ void main() {
     float opacity = (count - 1.0) / 8.0;
     alpha = min(opacity, 1.0);
 
-    cohesion /= max(count, 8.0);
+    cohesion /= max(count, 10.0);
 
     separate *= 0.1;
     align *= 0.4;
@@ -218,7 +218,7 @@ void main() {
     seekForce *= 0.8;
 
     float countFactor = 30.0 / count;
-    countFactor = clamp(countFactor, 1.0, 2.0);
+    countFactor = clamp(countFactor, 1.0, 1.5);
 
     float maxForce = u_maxForce * countFactor;
     vec3 boidForce = limit(flockForce + seekForce, maxForce);

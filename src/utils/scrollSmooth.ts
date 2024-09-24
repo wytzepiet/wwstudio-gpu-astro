@@ -9,19 +9,19 @@ export const scrollSmooth = {
 		subscribers.push(fn);
 	},
 	top: 0,
-	progress: 0
+	progress: 0,
+	init() {
+		gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
+	
+		return ScrollSmoother.create({
+			smooth: 1,
+			smoothTouch: 0.1,
+			onUpdate: (smooth) => {
+				scrollSmooth.progress = smooth.progress;
+				scrollSmooth.top = smooth.progress * (document.body.scrollHeight - window.innerHeight);
+				subscribers.forEach((fn) => fn(scrollSmooth.top));
+			}
+		});
+	}
 };
 
-export function initScrollSmooth() {
-	gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
-
-	return ScrollSmoother.create({
-		smooth: 1,
-		smoothTouch: 0.5,
-		onUpdate: (smooth) => {
-			scrollSmooth.progress = smooth.progress;
-			scrollSmooth.top = smooth.progress * (document.body.scrollHeight - window.innerHeight);
-			subscribers.forEach((fn) => fn(scrollSmooth.top));
-		}
-	});
-}
