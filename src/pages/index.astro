@@ -12,6 +12,7 @@ import CatchControl from '../images/catchcontrol.webp';
 import PortfolioItem from '../components/PortfolioItem.astro';
 import Layout from '../layouts/Layout.astro';
 import { Image } from 'astro:assets';
+import TimelineItem from '@/components/TimelineItem.astro';
 ---
 
 <script>
@@ -20,6 +21,7 @@ import { Image } from 'astro:assets';
 	import { SplitText } from 'gsap/dist/SplitText';
 	import ScrollTrigger from 'gsap/dist/ScrollTrigger';
 	import { ScrollSmoother } from 'gsap/ScrollSmoother';
+	import { createMouseListener } from '../utils/mouseMove';
 
 	gsap.registerPlugin(SplitText, ScrollTrigger, ScrollSmoother);
 
@@ -36,7 +38,7 @@ import { Image } from 'astro:assets';
 			scrub: 0
 		}
 	});
-	tl.to('.home-title', { duration: 1, translateZ: 60, pointerEvents: 'none', ease: 'linear' });
+	tl.to('.home-title', { duration: 1, translateZ: 600, pointerEvents: 'none', ease: 'linear' });
 	tl.to('.canvas', { duration: 1, filter: 'blur(20px)', opacity: 0 }, '>+2');
 
 	timelineItems.forEach((item, i) => {
@@ -53,14 +55,29 @@ import { Image } from 'astro:assets';
 		const info = item.querySelector('.info');
 		if (info) itemTl.from(info, { ...pop, scale: 0.5 }, '<');
 
+		const mouse = createMouseListener();
+
+		const inner = item.querySelector('.inner') as HTMLElement;
+		const onStart = () => {
+			itemTl.restart();
+			mouse.stopListening();
+			mouse.onMove(({ x, y }) => {
+				if (item.style.opacity == '0') return;
+				const rotateX = (y - window.innerHeight / 2) / -40;
+				const rotateY = (x - window.innerWidth / 2) / 40;
+				gsap.to(inner, { duration: 0.5, rotateX, rotateY });
+			});
+		};
+
 		const linear = { ease: 'linear', duration: 1 };
-		tl.to(item, { duration: 0.001, visibility: 'visible' }, i == 0 ? '<' : '>');
-		tl.from(item, { ...linear, translateZ: -60, onStart: () => itemTl.restart() as any as void });
+
+		tl.from(item, { duration: 0.001, pointerEvents: 'none' }, i == 0 ? '<' : '>');
+		tl.from(inner, { ...linear, translateZ: -600, onStart });
 		tl.from(item, { ...linear, duration: 0.5, opacity: 0 }, '<');
 		if (i == timelineItems.length - 1) return;
-		tl.to(item, { ...linear, translateZ: 60 });
+		tl.to(inner, { ...linear, translateZ: 600 });
 		tl.to(item, { ...linear, duration: 0.5, opacity: 0 }, '<+0.5');
-		tl.to(item, { ...linear, duration: 0.0001, pointerEvents: 'none' });
+		tl.to(item, { duration: 0.001, pointerEvents: 'none' });
 	});
 	tl.to('.canvas', { duration: 1, opacity: 0.6 }, '<');
 </script>
@@ -76,13 +93,10 @@ import { Image } from 'astro:assets';
 		<WebglCanvas delay={500} />
 	</div>
 
-	<style lang="postcss">
+	<style lang="postcss" is:global>
 		.scroll-timeline {
-			perspective: 100px;
+			perspective: 1000px;
 			transform-style: preserve-3d;
-		}
-		.scroll-timeline > div {
-			@apply absolute inset-0 flex flex-col items-center justify-center;
 		}
 	</style>
 	<div class="scroll-timeline fixed top-0 w-full h-screen">
@@ -93,27 +107,27 @@ import { Image } from 'astro:assets';
 				<div class="text-[0.5em]">One pixel at a time.</div>
 			</h1>
 		</div>
-		<div class="item about">
+		<TimelineItem class="about">
 			<Card className="image overflow-hidden">
 				<Image src={Me} alt="" class="w-32 mix-blend-screen" width={600} />
 			</Card>
 			<br />
-			<div class="animate-text">
+			<div class="animate-text text-center">
 				<p>Hey! I'm Wytze.</p>
 				<p>A freelance computer nerd</p>
 				<p>with an eye for design. I love</p>
 				<p>to make an idea come to life.</p>
 			</div>
-		</div>
+		</TimelineItem>
 
-		<div class="item">
+		<TimelineItem>
 			<h1 class="work animate-text text-9xl uppercase grid grid-cols-2 text-center">
 				<div>w</div>
 				<div>o</div>
 				<div>r</div>
 				<div>k</div>
 			</h1>
-		</div>
+		</TimelineItem>
 		<style>
 			h1.work > div {
 				margin: calc(-0.4 * var(--var-size));
@@ -151,7 +165,7 @@ import { Image } from 'astro:assets';
 			tags={['Mobile app', 'Flutter', 'Firebase', 'Hardware integration']}
 		/>
 
-		<div class="item">
+		<TimelineItem>
 			<div class="animate-text">
 				<h2 class="text-9xl uppercase">Let's<br />chat</h2>
 
@@ -161,6 +175,6 @@ import { Image } from 'astro:assets';
 				</p>
 				<a href="/" class="font-hero">hello@wytze.dev</a>
 			</div>
-		</div>
+		</TimelineItem>
 	</div>
 </Layout>

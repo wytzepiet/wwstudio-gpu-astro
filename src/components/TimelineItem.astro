@@ -1,0 +1,23 @@
+---
+interface Props {
+	class?: string;
+}
+---
+
+<div class:list={['item absolute inset-0', Astro.props.class]}>
+	<div class="inner absolute inset-0 flex flex-col items-center justify-center">
+		<slot />
+	</div>
+</div>
+
+<style lang="postcss">
+	.item {
+		perspective: 1000px;
+	}
+</style>
+
+<style is:global>
+	.item * {
+		transform-style: preserve-3d;
+	}
+</style>
