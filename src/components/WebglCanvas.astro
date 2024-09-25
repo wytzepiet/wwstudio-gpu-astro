@@ -241,19 +241,6 @@ interface Props {
 			});
 		});
 
-		// Create a renderbuffer for depth
-		const depthRenderbuffer = gl.createRenderbuffer();
-		gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
-		gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, canvas.width, canvas.height);
-
-		// Attach the depth renderbuffer to the framebuffer
-		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
-
-		// Check framebuffer status
-		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
-			console.error('Framebuffer is not complete');
-		}
-
 		function render() {
 			gl.useProgram(updateGridProgram);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, gridFrameBuffer);

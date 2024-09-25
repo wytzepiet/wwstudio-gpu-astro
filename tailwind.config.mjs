@@ -54,7 +54,7 @@ export default {
 					4: 'hsl(var(--chart-4))',
 					5: 'hsl(var(--chart-5))'
 				},
-				vibrant: '#ebf2ff94'
+				vibrant: 'hsl(215deg 100% 91.26%)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

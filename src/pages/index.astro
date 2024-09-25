@@ -91,30 +91,23 @@ import TimelineItem from '@/components/TimelineItem.astro';
 	tl.to('.canvas', { duration: 1, opacity: 0.6 }, '<');
 	tl.to('.bottom-bar', { duration: tl.totalDuration(), x: '-100vw' }, 0);
 
-	var dragging = false;
 	function scroll(amount: number) {
 		const target = scroller.progress + amount;
 		scroller.scrollTop(target * scroller.scrollTrigger.end);
-		if (!dragging) requestAnimationFrame(() => scroll((amount *= 0.9)));
+		const keepGoing = !obs.isDragging && Math.abs(amount) > 0.0001;
+		if (keepGoing) requestAnimationFrame(() => scroll((amount *= 0.9)));
 	}
 
-	Observer.create({
+	const obs = Observer.create({
 		target: '.bottom-bar-wrapper',
 		type: 'wheel, pointer',
 		tolerance: 0.00001,
-		onDragStart: () => {
-			dragging = true;
-			document.body.classList.add('select-none');
-		},
-		onDragEnd: () => {
-			dragging = false;
-			document.body.classList.remove('select-none');
-		},
-		onChangeX: (obs) => {
+		onDragStart: () => document.body.classList.add('select-none'),
+		onDragEnd: () => document.body.classList.remove('select-none'),
+		onChangeX: () => {
 			if (!obs.isDragging) return;
 			const amount = -obs.deltaX / window.innerWidth;
-			if (Math.abs(amount) > 1 / window.innerWidth) scroll(amount);
-			else dragging = false;
+			if (Math.abs(amount) > 1 / window.innerWidth) requestAnimationFrame(() => scroll(amount));
 		}
 	});
 </script>
@@ -228,10 +221,16 @@ import TimelineItem from '@/components/TimelineItem.astro';
 					<a href="/" class="translate-z-3 block">hello@wytze.dev</a>
 				</div>
 			</TimelineItem>
+
+			<img
+				src="/noise.gif"
+				alt=""
+				class="absolute h-full w-full object-cover opacity-[0.03] mix-blend-luminosity pointer-events-none"
+			/>
 		</Card>
 		<div class="bottom-bar-wrapper relative w-full overflow-hidden select-none">
-			<div class="bottom-bar tracking-[0.2em] text-muted-foreground/50">
-				|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+			<div class="bottom-bar tracking-widest text-muted-foreground/60 text-nowrap text-3xl sm:text-lg">
+				{Array.from({ length: 600 }).map(() => '| ')}
 			</div>
 			<div class="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background"></div>
 		</div>
