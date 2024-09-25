@@ -13,11 +13,8 @@ const { title } = Astro.props;
 	import '@fontsource-variable/jetbrains-mono';
 	import '@fontsource/space-mono';
 	import gsap from 'gsap';
-	import { queryFirst, timeout } from '../utils/generalUtils';
-	import { scrollSmooth } from '../utils/scrollSmooth';
+	import { queryFirst } from '../utils/generalUtils';
 	import { SplitText } from 'gsap/SplitText';
-
-	const scrollSmoother = scrollSmooth.init();
 
 	// timeout(10).then(() => scrollSmoother.scrollTo(1300, false));
 	// timeout(2000).then(() => scrollSmoother.scrollTo(0, true));
@@ -25,7 +22,7 @@ const { title } = Astro.props;
 	// document.body.style.overflow = 'hidden';
 	// timeout(2000).then(() => (document.body.style.overflow = 'auto'));
 
-	gsap.registerPlugin(SplitText);
+	// gsap.registerPlugin(SplitText);
 
 	// gsap.from(new SplitText('.nav', { type: 'chars' }).chars, {
 	// 	duration: 1,

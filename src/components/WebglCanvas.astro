@@ -254,14 +254,7 @@ interface Props {
 			console.error('Framebuffer is not complete');
 		}
 
-		let prevTime = performance.now();
-
-		function render(time: number) {
-			const deltaTime = time - prevTime;
-			const fps = 1000 / deltaTime;
-			if (Math.floor(time % 60) == 0) console.log(fps);
-			prevTime = time;
-
+		function render() {
 			gl.useProgram(updateGridProgram);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, gridFrameBuffer);
 			gl.viewport(0, 0, gridTextureSize.x, gridTextureSize.y);

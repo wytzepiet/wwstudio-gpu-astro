@@ -22,8 +22,13 @@ import TimelineItem from '@/components/TimelineItem.astro';
 	import ScrollTrigger from 'gsap/dist/ScrollTrigger';
 	import { ScrollSmoother } from 'gsap/ScrollSmoother';
 	import { createMouseListener } from '../utils/mouseMove';
+	import { Observer } from 'gsap/Observer';
+	import { Scroll } from 'lucide-react';
+	import { scrollSmooth } from '@/utils/scrollSmooth';
 
-	gsap.registerPlugin(SplitText, ScrollTrigger, ScrollSmoother);
+	gsap.registerPlugin(SplitText, ScrollTrigger, ScrollSmoother, Observer);
+
+	const scroller = scrollSmooth.init();
 
 	gsap.from('.home-title h1', { duration: 2, delay: 1.2, ease: 'power4.out', scale: 0.2 });
 	gsap.from('.home-title h1', { duration: 2, delay: 1.2, opacity: 0 });
@@ -86,6 +91,18 @@ import TimelineItem from '@/components/TimelineItem.astro';
 	});
 	tl.to('.canvas', { duration: 1, opacity: 0.6 }, '<');
 	tl.to('.bottom-bar', { duration: tl.totalDuration(), x: '-100vw' }, 0);
+
+	Observer.create({
+		target: '.bottom-bar-wrapper',
+		type: 'wheel, pointer',
+		tolerance: 0.00001,
+		onChangeX: (obs) => {
+			if (!obs.isDragging) return;
+			const delta = -obs.deltaX / window.innerWidth;
+			const target = scroller.progress + delta;
+			scroller.scrollTop(target * scroller.scrollTrigger.end);
+		}
+	});
 </script>
 
 <Layout title="Wytze Sligting">
@@ -198,8 +215,8 @@ import TimelineItem from '@/components/TimelineItem.astro';
 				</div>
 			</TimelineItem>
 		</Card>
-		<div class="relative w-full overflow-hidden">
-			<div class="bottom-bar tracking-widest text-muted-foreground/50">
+		<div class="bottom-bar-wrapper relative w-full overflow-hidden select-none">
+			<div class="bottom-bar tracking-[0.2em] text-muted-foreground/50">
 				|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 			</div>
 			<div class="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background"></div>
