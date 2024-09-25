@@ -23,7 +23,6 @@ import TimelineItem from '@/components/TimelineItem.astro';
 	import { ScrollSmoother } from 'gsap/ScrollSmoother';
 	import { createMouseListener } from '../utils/mouseMove';
 	import { Observer } from 'gsap/Observer';
-	import { Scroll } from 'lucide-react';
 	import { scrollSmooth } from '@/utils/scrollSmooth';
 
 	gsap.registerPlugin(SplitText, ScrollTrigger, ScrollSmoother, Observer);
@@ -92,15 +91,30 @@ import TimelineItem from '@/components/TimelineItem.astro';
 	tl.to('.canvas', { duration: 1, opacity: 0.6 }, '<');
 	tl.to('.bottom-bar', { duration: tl.totalDuration(), x: '-100vw' }, 0);
 
+	var dragging = false;
+	function scroll(amount: number) {
+		const target = scroller.progress + amount;
+		scroller.scrollTop(target * scroller.scrollTrigger.end);
+		if (!dragging) requestAnimationFrame(() => scroll((amount *= 0.9)));
+	}
+
 	Observer.create({
 		target: '.bottom-bar-wrapper',
 		type: 'wheel, pointer',
 		tolerance: 0.00001,
+		onDragStart: () => {
+			dragging = true;
+			document.body.classList.add('select-none');
+		},
+		onDragEnd: () => {
+			dragging = false;
+			document.body.classList.remove('select-none');
+		},
 		onChangeX: (obs) => {
 			if (!obs.isDragging) return;
-			const delta = -obs.deltaX / window.innerWidth;
-			const target = scroller.progress + delta;
-			scroller.scrollTop(target * scroller.scrollTrigger.end);
+			const amount = -obs.deltaX / window.innerWidth;
+			if (Math.abs(amount) > 1 / window.innerWidth) scroll(amount);
+			else dragging = false;
 		}
 	});
 </script>
