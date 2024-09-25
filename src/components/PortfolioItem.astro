@@ -19,14 +19,14 @@ const { image, title, description, tags } = Astro.props;
 			<Image src={image} alt={title} class="image w-[300px] rounded-lg mix-blend-screen opacity-90" width={1000} />
 		</Card>
 
-		<div class="info max-w-md flex flex-col gap-4 p-4 mt-[-50px] ml-[50px]">
+		<div class="info max-w-md flex flex-col gap-4 p-4 mt-[-50px] ml-[50px] translate-z-10">
 			<Card className="absolute inset-0 bg-background/70 backdrop-blur" />
-			<div class="flex flex-wrap gap-2 font-hero text-xs uppercase">
-				{tags.map((tag) => <div class="tag px-1 leading-4 rounded bg-muted-foreground text-background">{tag}</div>)}
+			<div class="flex flex-wrap gap-2 text-xs uppercase">
+				{tags.map((tag) => <div class="px-1 leading-4 rounded bg-vibrant/10 text-vibrant/60 translate-z-4">{tag}</div>)}
 			</div>
 			<div class="animate-text">
-				<h2 class="text-5xl uppercase">{title}</h2>
-				<p class="font-hero text-muted-foreground">{description}</p>
+				<h2 class="text-5xl uppercase translate-z-5">{title}</h2>
+				<p class="text-muted-foreground translate-z-3">{description}</p>
 			</div>
 		</div>
 	</div>
@@ -35,20 +35,5 @@ const { image, title, description, tags } = Astro.props;
 <style>
 	* {
 		transform-style: preserve-3d;
-	}
-	image {
-	}
-
-	.info {
-		transform: translateZ(30px);
-	}
-	.tag {
-		transform: translateZ(10px);
-	}
-	h2 {
-		transform: translateZ(20px);
-	}
-	p {
-		transform: translateZ(10px);
 	}
 </style>

@@ -1,4 +1,4 @@
-export function listen<K extends keyof WindowEventMap>(type: K, event: (this: Window, ev: WindowEventMap[K]) => any) {
+export function on<K extends keyof WindowEventMap>(type: K, event: (this: Window, ev: WindowEventMap[K]) => any) {
 	let listening = false;
 
 	const stop = () => {
@@ -13,4 +13,4 @@ export function listen<K extends keyof WindowEventMap>(type: K, event: (this: Wi
 	return { stop, start, listening };
 }
 
-export type BetterListener = ReturnType<typeof listen>;
+export type BetterListener = ReturnType<typeof on>;

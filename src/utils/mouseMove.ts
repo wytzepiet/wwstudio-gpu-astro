@@ -1,4 +1,4 @@
-import { listen, type BetterListener } from './betterListener';
+import { on } from './betterListener';
 
 let position = { x: 0, y: 0 };
 
@@ -11,21 +11,21 @@ export const createMouseListener = () => {
 	const update = () => mouseListeners.forEach((fn) => fn(position));
 
 	const eventListeners = [
-		listen('mousemove', (e) => (position = { x: e.clientX, y: e.clientY })),
-		listen('mousemove', update),
-		listen('resize', update),
-		listen('scroll', update)
+		on('mousemove', (e) => (position = { x: e.clientX, y: e.clientY })),
+		on('mousemove', update),
+		on('resize', update),
+		on('scroll', update)
 	];
 
-	const onMove = (fn: MouseListener) => {
+	const listen = (fn: MouseListener) => {
 		mouseListeners.push(fn);
 		eventListeners.forEach((e) => e.start());
 	};
 
-	const stopListening = () => {
+	const kill = () => {
 		mouseListeners = [];
 		eventListeners.forEach((e) => e.stop());
 	};
 
-	return { position, onMove, stopListening };
+	return { position, listen, kill };
 };

@@ -58,15 +58,19 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		const mouse = createMouseListener();
 
 		const inner = item.querySelector('.inner') as HTMLElement;
-		const onStart = () => {
-			itemTl.restart();
-			mouse.stopListening();
-			mouse.onMove(({ x, y }) => {
-				if (item.style.opacity == '0') return;
-				const rotateX = (y - window.innerHeight / 2) / -40;
-				const rotateY = (x - window.innerWidth / 2) / 40;
+
+		const listenToMouse = () => {
+			mouse.kill();
+			mouse.listen(({ x, y }) => {
+				if (item.style.opacity == '0') return mouse.kill();
+				const rotateX = (y - window.innerHeight / 2) / -30;
+				const rotateY = (x - window.innerWidth / 2) / 30;
 				gsap.to(inner, { duration: 0.5, rotateX, rotateY });
 			});
+		};
+		const onStart = () => {
+			itemTl.restart();
+			listenToMouse();
 		};
 
 		const linear = { ease: 'linear', duration: 1 };
@@ -77,7 +81,7 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		if (i == timelineItems.length - 1) return;
 		tl.to(inner, { ...linear, translateZ: 600 });
 		tl.to(item, { ...linear, duration: 0.5, opacity: 0 }, '<+0.5');
-		tl.to(item, { duration: 0.001, pointerEvents: 'none' });
+		tl.to(item, { duration: 0.001, pointerEvents: 'none', onReverseComplete: listenToMouse });
 	});
 	tl.to('.canvas', { duration: 1, opacity: 0.6 }, '<');
 </script>
@@ -100,7 +104,7 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		}
 	</style>
 	<div class="scroll-timeline fixed top-0 w-full h-screen">
-		<div class="home-title">
+		<div class="home-title absolute inset-0 flex justify-center">
 			<div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent"></div>
 			<h1 class="text-8xl uppercase h-full flex flex-col justify-end">
 				<div>I build ideas.</div>
@@ -166,14 +170,14 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		/>
 
 		<TimelineItem>
-			<div class="animate-text">
-				<h2 class="text-9xl uppercase">Let's<br />chat</h2>
+			<div class="contact animate-text">
+				<h2 class="text-9xl uppercase translate-z-4">Let's<br />chat</h2>
 
-				<p class="font-hero text-foreground/65">
+				<p class="text-foreground/65">
 					Contact me for full time jobs, <br />
 					freelance projects or just to say hello :-)
 				</p>
-				<a href="/" class="font-hero">hello@wytze.dev</a>
+				<a href="/" class="translate-z-3 block">hello@wytze.dev</a>
 			</div>
 		</TimelineItem>
 	</div>
