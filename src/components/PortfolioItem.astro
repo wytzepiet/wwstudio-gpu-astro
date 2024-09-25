@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import { Card, CardContent, CardTitle } from './ui/card';
+import { Card } from './ui/card';
 import TimelineItem from './TimelineItem.astro';
 
 interface Props {
@@ -15,11 +15,11 @@ const { image, title, description, tags } = Astro.props;
 
 <TimelineItem class="absolute inset-0 p-20 flex items-center justify-center">
 	<div class="flex flex-col items-start">
-		<Card className="image rotate-[-5deg]">
+		<Card className="image rotate-[-5deg] bg-transparent">
 			<Image src={image} alt={title} class="image w-[300px] rounded-lg mix-blend-screen opacity-90" width={1000} />
 		</Card>
 
-		<div class="info max-w-md flex flex-col gap-4 p-4 mt-[-50px] ml-[50px] translate-z-10">
+		<div class="info max-w-md flex flex-col gap-4 p-4 mt-[-50px] ml-[50px] translate-z-8">
 			<Card className="absolute inset-0 bg-background/70 backdrop-blur" />
 			<div class="flex flex-wrap gap-2 text-xs uppercase">
 				{tags.map((tag) => <div class="px-1 leading-4 rounded bg-vibrant/10 text-vibrant/60 translate-z-4">{tag}</div>)}

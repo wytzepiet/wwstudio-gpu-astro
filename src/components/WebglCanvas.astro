@@ -43,7 +43,7 @@ interface Props {
 		const hexToRgb = (hex: string) =>
 			[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255) as [number, number, number];
 
-		gl.uniform1f(uLoc('u_pointSize'), 2.0);
+		gl.uniform1f(uLoc('u_pointSize'), 2.5);
 		gl.uniform1f(uLoc('u_maxSpeed'), 2.3);
 		gl.uniform1f(uLoc('u_maxForce'), 0.16);
 		// gl.uniform3f(uLoc('u_color1'), ...hexToRgb('#49a25f'));
@@ -224,7 +224,7 @@ interface Props {
 		const renderWithBloom = initializeBloomEffect(gl, { x: canvas.width, y: canvas.height });
 
 		// Create and bind the radial gradient texture
-		const gradientTexture = createRadialGradientTexture(gl, 16)!;
+		const gradientTexture = createRadialGradientTexture(gl, 64)!;
 		const gradientTextureLoc = gl.getUniformLocation(boidsProgram, 'u_gradientTexture');
 
 		const mouse = new THREE.Vector2(canvas.height / 2, canvas.width / 2);
@@ -247,19 +247,21 @@ interface Props {
 		gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, canvas.width, canvas.height);
 
 		// Attach the depth renderbuffer to the framebuffer
-		gl.framebufferRenderbuffer(
-			gl.FRAMEBUFFER,
-			gl.DEPTH_ATTACHMENT,
-			gl.RENDERBUFFER,
-			depthRenderbuffer
-		);
+		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
 
 		// Check framebuffer status
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
 			console.error('Framebuffer is not complete');
 		}
 
-		function render() {
+		let prevTime = performance.now();
+
+		function render(time: number) {
+			const deltaTime = time - prevTime;
+			const fps = 1000 / deltaTime;
+			if (Math.floor(time % 60) == 0) console.log(fps);
+			prevTime = time;
+
 			gl.useProgram(updateGridProgram);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, gridFrameBuffer);
 			gl.viewport(0, 0, gridTextureSize.x, gridTextureSize.y);

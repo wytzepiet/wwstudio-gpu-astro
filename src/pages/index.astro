@@ -25,15 +25,16 @@ import TimelineItem from '@/components/TimelineItem.astro';
 
 	gsap.registerPlugin(SplitText, ScrollTrigger, ScrollSmoother);
 
-	gsap.from('.home-title h1', { duration: 2, delay: 1.5, ease: 'power4.out', scale: 0.2 });
-	gsap.from('.home-title h1', { duration: 1, delay: 1.5, opacity: 0 });
+	gsap.from('.home-title h1', { duration: 2, delay: 1.2, ease: 'power4.out', scale: 0.2 });
+	gsap.from('.home-title h1', { duration: 2, delay: 1.2, opacity: 0 });
 
 	const timelineItems = query('.scroll-timeline .item');
+	const timelineSize = (timelineItems.length + 4) * 400;
 	const tl = gsap.timeline({
 		scrollTrigger: {
 			trigger: '.scroll-trigger',
 			start: 'center center',
-			end: `+=${(timelineItems.length + 4) * 500}px`,
+			end: `+=${timelineSize}px`,
 			pin: true,
 			scrub: 0
 		}
@@ -63,8 +64,8 @@ import TimelineItem from '@/components/TimelineItem.astro';
 			mouse.kill();
 			mouse.listen(({ x, y }) => {
 				if (item.style.opacity == '0') return mouse.kill();
-				const rotateX = (y - window.innerHeight / 2) / -30;
-				const rotateY = (x - window.innerWidth / 2) / 30;
+				const rotateX = (y - window.innerHeight / 2) / -40;
+				const rotateY = (x - window.innerWidth / 2) / 40;
 				gsap.to(inner, { duration: 0.5, rotateX, rotateY });
 			});
 		};
@@ -76,14 +77,15 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		const linear = { ease: 'linear', duration: 1 };
 
 		tl.from(item, { duration: 0.001, pointerEvents: 'none' }, i == 0 ? '<' : '>');
-		tl.from(inner, { ...linear, translateZ: -600, onStart });
 		tl.from(item, { ...linear, duration: 0.5, opacity: 0 }, '<');
+		tl.from(inner, { ...linear, translateZ: -600, onStart }, '<');
 		if (i == timelineItems.length - 1) return;
 		tl.to(inner, { ...linear, translateZ: 600 });
 		tl.to(item, { ...linear, duration: 0.5, opacity: 0 }, '<+0.5');
 		tl.to(item, { duration: 0.001, pointerEvents: 'none', onReverseComplete: listenToMouse });
 	});
 	tl.to('.canvas', { duration: 1, opacity: 0.6 }, '<');
+	tl.to('.bottom-bar', { duration: tl.totalDuration(), x: '-100vw' }, 0);
 </script>
 
 <Layout title="Wytze Sligting">
@@ -93,92 +95,114 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		</div>
 	</div>
 
-	<div class="canvas fixed pointer-events-none top-0">
-		<WebglCanvas delay={500} />
-	</div>
-
 	<style lang="postcss" is:global>
 		.scroll-timeline {
 			perspective: 1000px;
 			transform-style: preserve-3d;
 		}
 	</style>
-	<div class="scroll-timeline fixed top-0 w-full h-screen">
-		<div class="home-title absolute inset-0 flex justify-center">
-			<div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent"></div>
-			<h1 class="text-8xl uppercase h-full flex flex-col justify-end">
-				<div>I build ideas.</div>
-				<div class="text-[0.5em]">One pixel at a time.</div>
-			</h1>
+
+	<div class="fixed inset-0 p-1 flex flex-col items-stretch justify-start">
+		<nav class="nav flex justify-between py-1 px-2 text-sm uppercase tracking-widest text-muted-foreground">
+			<h2 class="font-light">Wytze Sligting</h2>
+			<h2 class="font-light opacity-50">|||</h2>
+			<!-- <div>
+			<p>+ Home</p>
+			<p>Projects</p>
+			<p>About</p>
+		</div> -->
+			<h2 class="font-light">Creative developer</h2>
+			<h2 class="font-light opacity-50">|||</h2>
+			<h2 class="font-light">Let's talk</h2>
+		</nav>
+
+		<Card className="scroll-timeline flex-grow overflow-hidden">
+			<div class="canvas absolute pointer-events-none inset-0">
+				<WebglCanvas delay={500} />
+			</div>
+
+			<div class="home-title absolute inset-0 flex justify-center">
+				<div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent"></div>
+				<h1 class="text-8xl uppercase h-full pb-4 flex flex-col justify-end">
+					<!-- <div>I build ideas.</div>
+					<div class="text-[0.5em]">One pixel at a time.</div> -->
+				</h1>
+			</div>
+			<TimelineItem class="about">
+				<Card className="image overflow-hidden">
+					<Image src={Me} alt="" class="w-32 mix-blend-screen" width={600} />
+				</Card>
+				<br />
+				<div class="animate-text text-center font-normal">
+					<p>Hey! I'm Wytze.</p>
+					<p>A freelance computer nerd</p>
+					<p>with an eye for design. I love</p>
+					<p>to make an idea come to life.</p>
+				</div>
+			</TimelineItem>
+
+			<TimelineItem>
+				<h1 class="work animate-text text-9xl uppercase grid grid-cols-2 text-center font-black">
+					<div>w</div>
+					<div>o</div>
+					<div>r</div>
+					<div>k</div>
+				</h1>
+			</TimelineItem>
+			<style>
+				h1.work > div {
+					margin: calc(-0.4 * var(--var-size));
+				}
+			</style>
+
+			<PortfolioItem
+				image={Luca}
+				title="Snakken naar Tichelaar"
+				description="A rebellious exhibition about ceramics"
+				tags={['Graphic design', 'Exposition design', 'Curation']}
+			/>
+			<PortfolioItem
+				image={Suiker}
+				title="Nationaal Suikerbieten archief"
+				description="An arhcive website about the history of Dutch sugar industry"
+				tags={['Web app', 'Solid.js', 'Supabase', 'Mux video']}
+			/>
+			<PortfolioItem
+				image={Podwalk}
+				title="Podwalk"
+				description="A historical GPS guided audiotour"
+				tags={['Mobile app', 'Flutter', 'GPS', 'Narration & sound design']}
+			/>
+			<!-- <PortfolioItem
+				image={Prins}
+				title="Café de Prins"
+				description="Revamping an iconic café and hotel"
+				tags={['Interior design', 'Brand identity', 'Graphic design']}
+			/> -->
+			<PortfolioItem
+				image={CatchControl}
+				title="Catch Control"
+				description="A monitoring app for nature enthousiasts"
+				tags={['Mobile app', 'Flutter', 'Firebase', 'Hardware integration']}
+			/>
+
+			<TimelineItem>
+				<div class="contact animate-text">
+					<h2 class="text-9xl uppercase translate-z-4">Let's<br />chat</h2>
+
+					<p class="text-foreground/65">
+						Contact me for full time jobs, <br />
+						freelance projects or just to say hello :-)
+					</p>
+					<a href="/" class="translate-z-3 block">hello@wytze.dev</a>
+				</div>
+			</TimelineItem>
+		</Card>
+		<div class="relative w-full overflow-hidden">
+			<div class="bottom-bar tracking-widest text-muted-foreground/50">
+				|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+			</div>
+			<div class="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background"></div>
 		</div>
-		<TimelineItem class="about">
-			<Card className="image overflow-hidden">
-				<Image src={Me} alt="" class="w-32 mix-blend-screen" width={600} />
-			</Card>
-			<br />
-			<div class="animate-text text-center">
-				<p>Hey! I'm Wytze.</p>
-				<p>A freelance computer nerd</p>
-				<p>with an eye for design. I love</p>
-				<p>to make an idea come to life.</p>
-			</div>
-		</TimelineItem>
-
-		<TimelineItem>
-			<h1 class="work animate-text text-9xl uppercase grid grid-cols-2 text-center">
-				<div>w</div>
-				<div>o</div>
-				<div>r</div>
-				<div>k</div>
-			</h1>
-		</TimelineItem>
-		<style>
-			h1.work > div {
-				margin: calc(-0.4 * var(--var-size));
-			}
-		</style>
-
-		<PortfolioItem
-			image={Luca}
-			title="Snakken naar Tichelaar"
-			description="A rebellious exhibition about ceramics"
-			tags={['Graphic design', 'Exposition design', 'Curation']}
-		/>
-		<PortfolioItem
-			image={Suiker}
-			title="Nationaal Suikerbieten archief"
-			description="An arhcive website about the history of Dutch sugar industry"
-			tags={['Web app', 'Solid.js', 'Supabase', 'Mux video']}
-		/>
-		<PortfolioItem
-			image={Podwalk}
-			title="Podwalk"
-			description="A historical GPS guided audiotour"
-			tags={['Mobile app', 'Flutter', 'GPS tracking', 'Narration & sound design']}
-		/>
-		<PortfolioItem
-			image={Prins}
-			title="Café de Prins"
-			description="Revamping an iconic café and hotel"
-			tags={['Interior design', 'Brand identity', 'Graphic design']}
-		/>
-		<PortfolioItem
-			image={CatchControl}
-			title="Catch Control"
-			description="A monitoring app for nature enthousiasts"
-			tags={['Mobile app', 'Flutter', 'Firebase', 'Hardware integration']}
-		/>
-
-		<TimelineItem>
-			<div class="contact animate-text">
-				<h2 class="text-9xl uppercase translate-z-4">Let's<br />chat</h2>
-
-				<p class="text-foreground/65">
-					Contact me for full time jobs, <br />
-					freelance projects or just to say hello :-)
-				</p>
-				<a href="/" class="translate-z-3 block">hello@wytze.dev</a>
-			</div>
-		</TimelineItem>
 	</div>
 </Layout>

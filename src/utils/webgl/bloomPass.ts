@@ -1,8 +1,8 @@
 export function initializeBloomEffect(
 	gl: WebGL2RenderingContext,
 	resolution: { x: number; y: number },
-	strength: number = 4,
-	radius: number = 0.8
+	strength: number = 2.5,
+	radius: number = 0.9
 ) {
 	const nMips = 5; // Number of mip levels
 	const bloomFactors = [1.0, 0.8, 0.6, 0.4, 1.0];
@@ -106,10 +106,10 @@ export function initializeBloomEffect(
 			
 		
 			bloom.rgb = increaseSaturation(bloom.rgb, 2.5); 
-			scene *= 10.0;
+			scene *= 8.0;
 
 			vec4 result = scene + bloom;
-			result.rgb = mapToAsymptote(result.rgb, 1.1, 1.0);
+			result.rgb = mapToAsymptote(result.rgb, 1.001, 1.0);
 			
 			gl_FragColor = result;	
 
@@ -129,11 +129,7 @@ export function initializeBloomEffect(
 		return shader;
 	}
 
-	function createProgram(
-		gl: WebGL2RenderingContext,
-		vertexShader: WebGLShader,
-		fragmentShader: WebGLShader
-	) {
+	function createProgram(gl: WebGL2RenderingContext, vertexShader: WebGLShader, fragmentShader: WebGLShader) {
 		const program = gl.createProgram()!;
 		gl.attachShader(program, vertexShader);
 		gl.attachShader(program, fragmentShader);
@@ -185,11 +181,7 @@ export function initializeBloomEffect(
 	// Buffers
 	const positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	gl.bufferData(
-		gl.ARRAY_BUFFER,
-		new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-		gl.STATIC_DRAW
-	);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
 
 	// Framebuffers and textures
 	function createFramebufferTexture(gl: WebGL2RenderingContext, width: number, height: number) {
@@ -250,7 +242,6 @@ export function initializeBloomEffect(
 
 		gl.disable(gl.BLEND);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
 	}
 
 	// Function to apply blur

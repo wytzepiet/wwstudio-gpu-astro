@@ -27,14 +27,14 @@ const { title } = Astro.props;
 
 	gsap.registerPlugin(SplitText);
 
-	gsap.from(new SplitText('.nav', { type: 'chars' }).chars, {
-		duration: 1,
-		delay: 2,
-		y: '100%',
-		clipPath: 'inset(0 0 100% 0)',
-		ease: 'power4.out',
-		stagger: { each: 0.01 }
-	});
+	// gsap.from(new SplitText('.nav', { type: 'chars' }).chars, {
+	// 	duration: 1,
+	// 	delay: 2,
+	// 	y: '100%',
+	// 	clipPath: 'inset(0 0 100% 0)',
+	// 	ease: 'power4.out',
+	// 	stagger: { each: 0.01 }
+	// });
 
 	queryFirst('body')!.style.opacity = '1';
 </script>
@@ -48,17 +48,7 @@ const { title } = Astro.props;
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 	</head>
-	<body class="dark bg-background text-foreground opacity-0 font-light">
-		<nav class="nav fixed z-30 w-full flex justify-between p-4 text-sm uppercase tracking-widest">
-			<h2 class="">Wytze Sligting</h2>
-			<div>
-				<p>+ Home</p>
-				<p>Projects</p>
-				<p>About</p>
-			</div>
-			<h2 class="">Let's talk</h2>
-		</nav>
-
+	<body class="dark bg-black text-foreground opacity-0 font-light">
 		<slot />
 	</body>
 </html>

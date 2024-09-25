@@ -235,12 +235,11 @@ void main() {
 
         if(mouseDist < 100.0) {  
             vec2 mouseVel = u_prevMouse - u_mouse;
-            vec2 alignForce = mouseVel * 4.0;
-            vec2 avoidForce = mouseDiff * 0.1 * min(length(mouseVel), 10.0);
+            vec2 alignForce = mouseVel * 3.0;
+            vec2 avoidForce = mouseDiff * 0.1 * min(length(mouseVel), 20.0);
             deviationForce = alignForce + avoidForce;
             deviationForce *= -10.0 / (mouseDist * mouseDist);
             deviationVel += vec3(deviationForce, 0.0);
-
         }
     }
 
