@@ -53,7 +53,7 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		const img = item.querySelector('.image');
 		if (img) itemTl.from(img, { ...pop, rotate: 5, scale: 0.35 }, '<');
 
-		const { words } = new SplitText(item.querySelector('.animate-text'), { type: 'words' });
+		const { words } = new SplitText(item.querySelectorAll('.animate-text'), { type: 'words' });
 		const stagger = item.classList.contains('about') ? 0.03 : 0.05;
 		itemTl.from(words, { ...pop, y: '100%', rotate: 5, clipPath: 'inset(0 0 100% 0)', stagger }, '<');
 
@@ -83,13 +83,16 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		tl.from(item, { duration: 0.001, pointerEvents: 'none' }, i == 0 ? '<' : '>');
 		tl.from(item, { ...linear, duration: 0.5, opacity: 0 }, '<');
 		tl.from(inner, { ...linear, translateZ: -600, onStart }, '<');
+		tl.addLabel(`item-${i}`);
 		if (i == timelineItems.length - 1) return;
 		tl.to(inner, { ...linear, translateZ: 600 });
 		tl.to(item, { ...linear, duration: 0.5, opacity: 0 }, '<+0.5');
 		tl.to(item, { duration: 0.001, pointerEvents: 'none', onReverseComplete: listenToMouse });
 	});
-	tl.to('.canvas', { duration: 1, opacity: 0.6 }, '<');
+	tl.to('.canvas', { duration: 1, filter: 'blur(0px)', opacity: 0.6, ease: 'power1.in' }, '<');
 	tl.to('.bottom-bar', { duration: tl.totalDuration(), x: '-100vw' }, 0);
+
+	tl.to('.canvas', { duration: 3, opacity: 0.2, ease: 'power1.in' }, 'item-0');
 
 	function scroll(amount: number) {
 		const target = scroller.progress + amount;
@@ -100,7 +103,7 @@ import TimelineItem from '@/components/TimelineItem.astro';
 
 	const obs = Observer.create({
 		target: '.bottom-bar-wrapper',
-		type: 'wheel, pointer',
+		type: 'pointer, touch',
 		tolerance: 0.00001,
 		onDragStart: () => document.body.classList.add('select-none'),
 		onDragEnd: () => document.body.classList.remove('select-none'),
@@ -126,8 +129,8 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		}
 	</style>
 
-	<div class="fixed inset-0 p-1 flex flex-col items-stretch justify-start">
-		<nav class="nav flex justify-between py-1 px-2 text-sm uppercase tracking-widest text-muted-foreground">
+	<div class="fixed inset-0 p-1 flex gap-1 flex-col items-stretch justify-start">
+		<nav class="nav flex justify-between py-1 px-2 uppercase tracking-widest text-muted-foreground">
 			<h2 class="font-light">Wytze Sligting</h2>
 			<h2 class="font-light opacity-50">|||</h2>
 			<!-- <div>
@@ -137,10 +140,10 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		</div> -->
 			<h2 class="font-light">Creative developer</h2>
 			<h2 class="font-light opacity-50">|||</h2>
-			<h2 class="font-light">Let's talk</h2>
+			<h2 class="font-light">Contact me</h2>
 		</nav>
 
-		<Card className="scroll-timeline flex-grow overflow-hidden">
+		<div class="scroll-timeline flex-grow overflow-hidden rounded-md border bg-background">
 			<div class="canvas absolute pointer-events-none inset-0">
 				<WebglCanvas delay={500} />
 			</div>
@@ -153,9 +156,9 @@ import TimelineItem from '@/components/TimelineItem.astro';
 				</h1>
 			</div>
 			<TimelineItem class="about">
-				<Card className="image overflow-hidden">
+				<div class="image overflow-hidden bg-background border rounded-md">
 					<Image src={Me} alt="" class="w-32 mix-blend-screen" width={600} />
-				</Card>
+				</div>
 				<br />
 				<div class="animate-text text-center font-normal">
 					<p>Hey! I'm Wytze.</p>
@@ -166,7 +169,7 @@ import TimelineItem from '@/components/TimelineItem.astro';
 			</TimelineItem>
 
 			<TimelineItem>
-				<h1 class="work animate-text text-9xl uppercase grid grid-cols-2 text-center font-black">
+				<h1 class="work animate-text text-9xl uppercase grid grid-cols-2 text-center">
 					<div>w</div>
 					<div>o</div>
 					<div>r</div>
@@ -211,14 +214,19 @@ import TimelineItem from '@/components/TimelineItem.astro';
 			/>
 
 			<TimelineItem>
-				<div class="contact animate-text">
+				<div class="contact animate-text flex flex-col items-start">
 					<h2 class="text-9xl uppercase translate-z-4">Let's<br />chat</h2>
 
-					<p class="text-foreground/65">
-						Contact me for full time jobs, <br />
-						freelance projects or just to say hello :-)
-					</p>
-					<a href="/" class="translate-z-3 block">hello@wytze.dev</a>
+					<div class="bg-background/50 rounded-md border backdrop-blur">
+						<p class="text-foreground/65 p-2">
+							Contact me for full time jobs, <br />
+							freelance projects or just to <br />
+							say hello :-)
+						</p>
+						<div class="border-t px-2 py-1">
+							<a href="/" class="translate-z-3 block">hello@wytze.dev</a>
+						</div>
+					</div>
 				</div>
 			</TimelineItem>
 
@@ -227,12 +235,24 @@ import TimelineItem from '@/components/TimelineItem.astro';
 				alt=""
 				class="absolute h-full w-full object-cover opacity-[0.03] mix-blend-luminosity pointer-events-none"
 			/>
-		</Card>
-		<div class="bottom-bar-wrapper relative w-full overflow-hidden select-none">
-			<div class="bottom-bar tracking-widest text-muted-foreground/60 text-nowrap text-6xl sm:text-lg">
-				{Array.from({ length: 500 }).map(() => '| ')}
+		</div>
+		<div class="flex gap-1">
+			<div class="p-1 rounded-sm border border-muted-foreground/30 text-muted-foreground/60">Back</div>
+			<div class="bottom-bar-wrapper relative w-full overflow-hidden select-none border border-muted-foreground/30">
+				<div class="bottom-bar flex gap-1 items-end p-1 w-full h-full">
+					{Array.from({ length: 1000 }).map(() => <div class="line" />)}
+				</div>
+				<style lang="postcss">
+					.line {
+						@apply h-3 border-r border-muted-foreground/50 shrink-0;
+					}
+					.line:nth-child(10n) {
+						@apply h-full;
+					}
+				</style>
+				<div class="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-background/60"></div>
 			</div>
-			<div class="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background"></div>
+			<div class="p-1 rounded-sm border border-muted-foreground/30 text-muted-foreground/60">Next</div>
 		</div>
 	</div>
 </Layout>

@@ -91,7 +91,8 @@ interface Props {
 
 			camera.aspect = canvas.width / canvas.height;
 			let progress = scrollSmooth.top;
-			if (progress > 1500) progress -= document.body.scrollHeight + window.innerHeight - 1500;
+			// if (progress > 1500) progress -= document.body.scrollHeight + window.innerHeight - 1500;
+			if (progress > 1300) progress = 0;
 
 			const camY = Math.sin(progress) * -cameraDist;
 			const camZ = Math.cos(progress) * -cameraDist;

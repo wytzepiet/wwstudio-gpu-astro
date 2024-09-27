@@ -11,7 +11,7 @@ export default {
 				'space-mono': ['Space Mono', 'monospace'],
 				'jetbrains-mono': ['Jetbrains Mono', 'monospace'],
 				'alanta-rosery': ['Alanta Rosery', 'serif'],
-				rolf: ['Rolf', 'sans-serif']
+				tektur: ['Tektur Variable', 'sans-serif']
 			},
 			colors: {
 				background: 'hsl(var(--background))',
@@ -57,9 +57,9 @@ export default {
 				vibrant: 'hsl(215deg 100% 91.26%)'
 			},
 			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				lg: 'var(--radius * 2)',
+				md: 'calc(var(--radius))',
+				sm: 'calc(var(--radius) * 0.5)'
 			},
 			fontSize: {
 				// text-xs	font-size: 0.75rem; /* 12px */
