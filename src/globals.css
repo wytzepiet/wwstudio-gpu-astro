@@ -89,6 +89,9 @@
 		-ms-overflow-style: none; /* IE and Edge */
 		scrollbar-width: none; /* Firefox */
 	}
+	::selection {
+		@apply bg-primary text-primary-foreground;
+	}
 }
 
 /* Alanta Rosery */

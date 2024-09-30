@@ -1,0 +1,6 @@
+This favicon was generated using the following font:
+
+- Font Title: Tektur
+- Font Author: Copyright 2023 The Tektur Project Authors (https://www.github.com/hyvyys/Tektur)
+- Font Source: https://fonts.gstatic.com/s/tektur/v3/XoHN2YHtS7q969kXCjzlV0aSkS_o8OacmTe0TYlYFot8TrwuVYtOY8P7TWd0.ttf
+- Font License: SIL Open Font License, 1.1 (http://scripts.sil.org/OFL))

@@ -1,6 +1,5 @@
 ---
 import WebglCanvas from '../components/WebglCanvas.astro';
-import { Card } from '@/components/ui/card';
 
 import Me from '../images/me2.png';
 import Luca from '../images/luca.png';
@@ -16,33 +15,40 @@ import TimelineItem from '@/components/TimelineItem.astro';
 ---
 
 <script>
-	import { query } from '../utils/generalUtils';
+	import { query, queryFirst, timeout } from '../utils/generalUtils';
 	import { gsap } from 'gsap';
 	import { SplitText } from 'gsap/dist/SplitText';
 	import ScrollTrigger from 'gsap/dist/ScrollTrigger';
 	import { ScrollSmoother } from 'gsap/ScrollSmoother';
 	import { createMouseListener } from '../utils/mouseMove';
 	import { Observer } from 'gsap/Observer';
-	import { scrollSmooth } from '@/utils/scrollSmooth';
+	import ScrambleTextPlugin from 'gsap/ScrambleTextPlugin';
+	import { RoughEase } from 'gsap/EasePack';
+	import CustomEase from 'gsap/CustomEase';
+	import { scroller } from '@/utils/scroller';
+	import { clamp } from 'three/src/math/MathUtils.js';
 
-	gsap.registerPlugin(SplitText, ScrollTrigger, ScrollSmoother, Observer);
-
-	const scroller = scrollSmooth.init();
+	gsap.registerPlugin(SplitText, ScrollTrigger, ScrollSmoother, Observer, ScrambleTextPlugin, RoughEase, CustomEase);
 
 	gsap.from('.home-title h1', { duration: 2, delay: 1.2, ease: 'power4.out', scale: 0.2 });
 	gsap.from('.home-title h1', { duration: 2, delay: 1.2, opacity: 0 });
 
 	const timelineItems = query('.scroll-timeline .item');
-	const timelineSize = (timelineItems.length + 4) * 400;
-	const tl = gsap.timeline({
+	const timelineSize = (timelineItems.length + 4) * window.innerHeight;
+	export const tl = gsap.timeline({
 		scrollTrigger: {
-			trigger: '.scroll-trigger',
-			start: 'center center',
+			scroller: 'html',
+			trigger: '.trigger',
+			start: '0px',
 			end: `+=${timelineSize}px`,
-			pin: true,
-			scrub: 0
+			scrub: 2,
+			onUpdate: () => {
+				scroller.update(tl.progress() * timelineSize);
+			}
 		}
 	});
+
+	tl.addLabel('start');
 	tl.to('.home-title', { duration: 1, translateZ: 600, pointerEvents: 'none', ease: 'linear' });
 	tl.to('.canvas', { duration: 1, filter: 'blur(20px)', opacity: 0 }, '>+2');
 
@@ -51,14 +57,14 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		const pop = { duration: 1, ease: 'power4.out' };
 
 		const img = item.querySelector('.image');
-		if (img) itemTl.from(img, { ...pop, rotate: 5, scale: 0.35 }, '<');
+		if (img) itemTl.from(img, { ...pop, rotate: 10, scale: 0.2 }, '<');
 
-		const { words } = new SplitText(item.querySelectorAll('.animate-text'), { type: 'words' });
-		const stagger = item.classList.contains('about') ? 0.03 : 0.05;
-		itemTl.from(words, { ...pop, y: '100%', rotate: 5, clipPath: 'inset(0 0 100% 0)', stagger }, '<');
+		const { chars } = new SplitText(item.querySelectorAll('.animate-text'), { type: 'words, chars' });
+		const roughEase = 'rough({strength: 5, points: 25, template: power3.inOut, taper: both, randomize: true})';
+		itemTl.from(chars, { duration: 1, opacity: 0, stagger: 0.007, ease: roughEase }, '<');
 
 		const info = item.querySelector('.info');
-		if (info) itemTl.from(info, { ...pop, scale: 0.5 }, '<');
+		if (info) itemTl.from(info, { ...pop, scale: 0.2 }, '<');
 
 		const mouse = createMouseListener();
 
@@ -66,10 +72,10 @@ import TimelineItem from '@/components/TimelineItem.astro';
 
 		const listenToMouse = () => {
 			mouse.kill();
-			mouse.listen(({ x, y }) => {
+			mouse.listen(({ clientX, clientY }) => {
 				if (item.style.opacity == '0') return mouse.kill();
-				const rotateX = (y - window.innerHeight / 2) / -40;
-				const rotateY = (x - window.innerWidth / 2) / 40;
+				const rotateX = (clientY - window.innerHeight / 2) / -40;
+				const rotateY = (clientX - window.innerWidth / 2) / 40;
 				gsap.to(inner, { duration: 0.5, rotateX, rotateY });
 			});
 		};
@@ -89,14 +95,45 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		tl.to(item, { ...linear, duration: 0.5, opacity: 0 }, '<+0.5');
 		tl.to(item, { duration: 0.001, pointerEvents: 'none', onReverseComplete: listenToMouse });
 	});
-	tl.to('.canvas', { duration: 1, filter: 'blur(0px)', opacity: 0.6, ease: 'power1.in' }, '<');
+	tl.to('.canvas', { duration: 1, filter: 'blur(0px)', opacity: 0.6, ease: 'power1.inOut' }, '<');
 	tl.to('.bottom-bar', { duration: tl.totalDuration(), x: '-100vw' }, 0);
 
 	tl.to('.canvas', { duration: 3, opacity: 0.2, ease: 'power1.in' }, 'item-0');
 
+	const nearestLabelTime = (time = tl.rawTime()) => {
+		const distToCurr = time - tl.labels[tl.currentLabel()];
+		const distToNext = tl.labels[tl.nextLabel()] - time;
+		return tl.labels[distToCurr < distToNext ? tl.currentLabel() : tl.nextLabel()];
+	};
+	// const updateScrollPos = () => scroller.scrollTo(tl.progress() * scroller.scrollTrigger.end, false);
+	const updateScrollPos = () => {};
+
+	CustomEase.create('snappy', '.26,0,0,.99');
+	const tweenVars: gsap.TweenVars = { duration: 1.4, ease: 'snappy', onUpdate: updateScrollPos };
+
+	let snapPoints = [0];
+	Object.values(tl.labels).forEach((time, i) => {
+		const el = document.createElement('div');
+		queryFirst('.snaps')!.appendChild(el);
+		const position = (time / tl.totalDuration()) * timelineSize;
+		snapPoints.push(position);
+		el.classList.add('snap');
+		el.style.marginTop = `${position - snapPoints[i]}px`;
+	});
+	snapPoints.shift();
+
+	const incrementSnapPos = (increment: number) => {
+		const dists = snapPoints.map((pos) => Math.abs(pos - scroller.top));
+		const current = dists.indexOf(Math.min(...dists));
+		scroller.to(snapPoints[clamp(current + increment, 0, snapPoints.length - 1)]);
+	};
+
+	queryFirst('.back')?.addEventListener('click', () => incrementSnapPos(-1));
+	queryFirst('.next')?.addEventListener('click', () => incrementSnapPos(1));
+
 	function scroll(amount: number) {
-		const target = scroller.progress + amount;
-		scroller.scrollTop(target * scroller.scrollTrigger.end);
+		// const target = scroller.progress + amount;
+		// scroller.scrollTop(target * scroller.scrollTrigger.end);
 		const keepGoing = !obs.isDragging && Math.abs(amount) > 0.0001;
 		if (keepGoing) requestAnimationFrame(() => scroll((amount *= 0.9)));
 	}
@@ -113,14 +150,22 @@ import TimelineItem from '@/components/TimelineItem.astro';
 			if (Math.abs(amount) > 1 / window.innerWidth) requestAnimationFrame(() => scroll(amount));
 		}
 	});
+
+	const html = queryFirst('html')!;
+	html.style.scrollBehavior = 'smooth';
+	html.style.scrollSnapType = 'y mandatory';
 </script>
 
 <Layout title="Wytze Sligting">
-	<div id="smooth-wrapper">
-		<div id="smooth-content">
-			<div class="scroll-trigger h-screen"></div>
-		</div>
-	</div>
+	<div class="trigger"></div>
+	<div class="snaps contents relative"></div>
+	<div class="snap h-screen"></div>
+
+	<style is:global lang="postcss">
+		 .snap {
+			@apply snap-start relative w-full border;  
+		}
+	</style>
 
 	<style lang="postcss" is:global>
 		.scroll-timeline {
@@ -129,7 +174,7 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		}
 	</style>
 
-	<div class="fixed inset-0 p-1 flex gap-1 flex-col items-stretch justify-start">
+	<div class="fixed-content fixed overflow-hidden inset-0 p-1 flex gap-1 flex-col items-stretch justify-start z-30">
 		<nav class="nav flex justify-between py-1 px-2 uppercase tracking-widest text-muted-foreground">
 			<h2 class="font-light">Wytze Sligting</h2>
 			<h2 class="font-light opacity-50">|||</h2>
@@ -230,15 +275,15 @@ import TimelineItem from '@/components/TimelineItem.astro';
 				</div>
 			</TimelineItem>
 
-			<img
+			<!-- <img
 				src="/noise.gif"
 				alt=""
 				class="absolute h-full w-full object-cover opacity-[0.03] mix-blend-luminosity pointer-events-none"
-			/>
+			/> -->
 		</div>
 		<div class="flex gap-1">
-			<div class="p-1 rounded-sm border border-muted-foreground/30 text-muted-foreground/60">Back</div>
-			<div class="bottom-bar-wrapper relative w-full overflow-hidden select-none border border-muted-foreground/30">
+			<div class="back tl-control">Back</div>
+			<div class="bottom-bar-wrapper relative w-full overflow-hidden select-none border bg-black">
 				<div class="bottom-bar flex gap-1 items-end p-1 w-full h-full">
 					{Array.from({ length: 1000 }).map(() => <div class="line" />)}
 				</div>
@@ -252,7 +297,15 @@ import TimelineItem from '@/components/TimelineItem.astro';
 				</style>
 				<div class="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-background/60"></div>
 			</div>
-			<div class="p-1 rounded-sm border border-muted-foreground/30 text-muted-foreground/60">Next</div>
+			<div class="next tl-control">Next</div>
+			<style lang="postcss">
+				.tl-control {
+					@apply p-1 rounded-sm border bg-black text-muted-foreground/60 cursor-pointer select-none;
+				}
+				.tl-control:hover {
+					@apply bg-muted-foreground/15;
+				}
+			</style>
 		</div>
 	</div>
 </Layout>

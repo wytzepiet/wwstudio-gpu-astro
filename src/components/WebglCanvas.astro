@@ -9,7 +9,7 @@ interface Props {
 	import { createBuffer, initProgram } from '../utils/webgl/webglUtils';
 	import { createRadialGradientTexture } from '../utils/webgl/createRadialGradient';
 	import { initializeBloomEffect } from '../utils/webgl/bloomPass';
-	import { scrollSmooth } from '../utils/scrollSmooth';
+	import { scroller } from '../utils/scroller';
 	import { queryFirst, timeout } from '../utils/generalUtils';
 
 	const canvas = queryFirst('#canvas') as HTMLCanvasElement;
@@ -90,7 +90,7 @@ interface Props {
 			gl.uniform3f(uLoc('u_canvasSize'), canvas.width, canvas.height, 1000);
 
 			camera.aspect = canvas.width / canvas.height;
-			let progress = scrollSmooth.top;
+			let progress = scroller.top / 2;
 			// if (progress > 1500) progress -= document.body.scrollHeight + window.innerHeight - 1500;
 			if (progress > 1300) progress = 0;
 
@@ -116,7 +116,7 @@ interface Props {
 
 		resize();
 		window.addEventListener('resize', () => requestAnimationFrame(resize));
-		scrollSmooth.subscribe(() => requestAnimationFrame(resize));
+		scroller.subscribe(() => requestAnimationFrame(resize));
 
 		const target = new THREE.Vector3();
 
@@ -216,7 +216,7 @@ interface Props {
 
 		for (let i = 0; i < NUM_BOIDS * 3; i += 3) {
 			// velocities.set([...randomVec()], i);
-			positions.set([...randomVec().multiplyScalar(1)], i);
+			positions.set([...randomVec()], i);
 			positions[i + 2] -= cameraDist - 200;
 		}
 
@@ -230,16 +230,13 @@ interface Props {
 
 		const mouse = new THREE.Vector2(canvas.height / 2, canvas.width / 2);
 		const prevMouse = mouse.clone();
-		let mouseSet = false;
 
 		timeout(delay + 1000).then(() => {
-			window.addEventListener('mousemove', (e) => {
-				const x = window.innerWidth / 2 - e.clientX;
-				const y = window.innerHeight / 2 - e.clientY;
-				mouse.set(x, y);
-				if (!mouseSet) prevMouse.set(mouse.x, mouse.y);
-				mouseSet = true;
+			window.addEventListener('mousemove', ({ clientX, clientY }) => {
+				const { left, top, width, height } = canvas.getBoundingClientRect();
+				mouse.set(left + width / 2 - clientX, top + height / 2 - clientY);
 			});
+			window.addEventListener('mousemove', () => prevMouse.set(mouse.x, mouse.y), { once: true });
 		});
 
 		function render() {

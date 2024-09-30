@@ -1,17 +1,16 @@
 import { on } from './betterListener';
 
-let position = { x: 0, y: 0 };
+let event: MouseEvent;
 
-type Position = typeof position;
-type MouseListener = (position: Position) => any;
+type MouseListener = (position: MouseEvent) => any;
 
 export const createMouseListener = () => {
 	let mouseListeners: MouseListener[] = [];
 
-	const update = () => mouseListeners.forEach((fn) => fn(position));
+	const update = () => mouseListeners.forEach((fn) => fn(event));
 
 	const eventListeners = [
-		on('mousemove', (e) => (position = { x: e.clientX, y: e.clientY })),
+		on('mousemove', (e) => (event = e)),
 		on('mousemove', update),
 		on('resize', update),
 		on('scroll', update)
@@ -27,5 +26,5 @@ export const createMouseListener = () => {
 		eventListeners.forEach((e) => e.stop());
 	};
 
-	return { position, listen, kill };
+	return { event, listen, kill };
 };
