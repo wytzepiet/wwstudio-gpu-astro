@@ -14,9 +14,9 @@ const { title } = Astro.props;
 	import '@fontsource/space-mono';
 	import '@fontsource-variable/tektur';
 
-	import { queryOne } from '@/utils/generalUtils';
+	import { query } from '@/utils/generalUtils';
 
-	queryOne('body')!.style.opacity = '1';
+	query.one('body')!.style.opacity = '1';
 </script>
 
 <html lang="en">

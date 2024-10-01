@@ -1,8 +1,3 @@
-import gsap from 'gsap';
-import ScrollSmoother from 'gsap/dist/ScrollSmoother';
-import ScrollTrigger from 'gsap/dist/ScrollTrigger';
-import { queryOne } from './generalUtils';
-
 type Subscriber = (progress?: number) => {};
 const subscribers: Subscriber[] = [];
 

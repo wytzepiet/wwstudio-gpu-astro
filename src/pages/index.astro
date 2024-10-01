@@ -5,7 +5,6 @@ import Me from '../images/me2.png';
 import Luca from '../images/luca.png';
 import Suiker from '../images/archief.png';
 import Podwalk from '../images/podwalk.jpg';
-import Prins from '../images/prins.png';
 import CatchControl from '../images/catchcontrol.webp';
 
 import PortfolioItem from '../components/PortfolioItem.astro';
@@ -15,32 +14,36 @@ import TimelineItem from '@/components/TimelineItem.astro';
 ---
 
 <script>
-	import { queryAll, queryOne } from '../utils/generalUtils';
 	import { gsap } from 'gsap';
-	import { SplitText } from 'gsap/dist/SplitText';
-	import ScrollTrigger from 'gsap/dist/ScrollTrigger';
-	import { ScrollSmoother } from 'gsap/ScrollSmoother';
-	import { createMouseListener } from '../utils/mouseMove';
+	import { SplitText } from 'gsap/SplitText';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 	import { Observer } from 'gsap/Observer';
-	import ScrambleTextPlugin from 'gsap/ScrambleTextPlugin';
 	import { RoughEase } from 'gsap/EasePack';
-	import CustomEase from 'gsap/CustomEase';
+
+	import { query, createQuery } from '../utils/generalUtils';
+	import { createMouseListener } from '../utils/mouseMove';
 	import { scroller } from '@/utils/scroller';
+
 	import { clamp } from 'three/src/math/MathUtils.js';
 
-	gsap.registerPlugin(SplitText, ScrollTrigger, ScrollSmoother, Observer, ScrambleTextPlugin, RoughEase, CustomEase);
+	gsap.registerPlugin(SplitText, ScrollTrigger, Observer, RoughEase);
 
-	gsap.from('.home-title h1', { duration: 2, delay: 1.2, ease: 'power4.out', scale: 0.2 });
-	gsap.from('.home-title h1', { duration: 2, delay: 1.2, opacity: 0 });
+	const roughEase = 'rough({strength: 5, points: 30, template: power3.inOut, taper: both, randomize: true})';
+	const flickerVars = { duration: 1, opacity: 0, stagger: 0.007, ease: roughEase };
 
-	const timelineItems = queryAll('.scroll-timeline .item');
+	// gsap.from('.home-title h1', { duration: 2, delay: 1.2, ease: 'power4.out', scale: 0.2 });
+	// gsap.from('.home-title h1', { duration: 2, delay: 1.2, opacity: 0 });
+	const titleText = new SplitText('.home-title', { type: 'chars, words' });
+	gsap.from(titleText.chars, { ...flickerVars, delay: 2, duration: 1.5 });
+
+	const timelineItems = query.all('.scroll-timeline .item');
 	const timelineSize = (timelineItems.length + 4) * window.innerHeight;
 
 	export const tl = gsap.timeline({
 		scrollTrigger: { start: 0, end: timelineSize, scrub: 2 },
 		onUpdate: () => {
 			scroller.update(tl.progress() * timelineSize);
-			queryOne('.bottom-bar')!.style.transform = `translateX(${-scroller.top / 5}px)`;
+			query.one('.bottom-bar')!.style.transform = `translateX(${-scroller.top / 5}px)`;
 		}
 	});
 
@@ -49,29 +52,26 @@ import TimelineItem from '@/components/TimelineItem.astro';
 	tl.to('.canvas', { duration: 1, filter: 'blur(20px)', opacity: 0 }, '>+2');
 
 	timelineItems.forEach((item, i) => {
+		const queryItem = createQuery(item);
 		const itemTl = gsap.timeline({ paused: true });
 		const pop = { duration: 1, ease: 'power4.out' };
 
-		const img = item.querySelector('.image');
-		if (img) itemTl.from(img, { ...pop, rotate: 10, scale: 0.2 }, '<');
+		queryItem.all('.image').forEach((img) => itemTl.from(img, { ...pop, rotate: 10, scale: 0.2 }, '<'));
+		queryItem.all('.info').forEach((info) => itemTl.from(info, { ...pop, scale: 0.2 }, '<'));
 
 		const { chars } = new SplitText(item.querySelectorAll('.animate-text'), { type: 'words, chars' });
-		const roughEase = 'rough({strength: 5, points: 25, template: power3.inOut, taper: both, randomize: true})';
-		itemTl.from(chars, { duration: 1, opacity: 0, stagger: 0.007, ease: roughEase }, '<');
+		if (chars) itemTl.from(chars, flickerVars, '<');
 
-		const info = item.querySelector('.info');
-		if (info) itemTl.from(info, { ...pop, scale: 0.2 }, '<');
-
+		const inner = queryItem.one('.inner');
 		const mouse = createMouseListener();
-
-		const inner = item.querySelector('.inner') as HTMLElement;
 
 		const listenToMouse = () => {
 			mouse.kill();
 			mouse.listen(({ clientX, clientY }) => {
 				if (item.style.opacity == '0') return mouse.kill();
-				const rotateX = (clientY - window.innerHeight / 2) / -40;
-				const rotateY = (clientX - window.innerWidth / 2) / 40;
+				const onTl = mouse.intersects(query.one('.scroll-timeline')!);
+				const rotateX = onTl ? (clientY - window.innerHeight / 2) / -40 : 0;
+				const rotateY = onTl ? (clientX - window.innerWidth / 2) / 40 : 0;
 				gsap.to(inner, { duration: 0.5, rotateX, rotateY });
 			});
 		};
@@ -91,21 +91,20 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		tl.to(item, { ...linear, duration: 0.5, opacity: 0 }, '<+0.5');
 		tl.to(item, { duration: 0.001, pointerEvents: 'none', onReverseComplete: listenToMouse });
 	});
-	tl.to('.canvas', { duration: 1, filter: 'blur(0px)', opacity: 0.6, ease: 'power1.inOut' }, '<');
 
+	tl.to('.canvas', { duration: 1, filter: 'blur(0px)', opacity: 0.6, ease: 'power1.inOut' }, '<');
 	tl.to('.canvas', { duration: 3, opacity: 0.2, ease: 'power1.in' }, 'item-0');
 
 	let snapPoints = [0];
-	Object.values(tl.labels).forEach((time, i) => {
+	Object.values(tl.labels).forEach((labelTime, i) => {
 		const el = document.createElement('div');
-		queryOne('.snaps')!.appendChild(el);
-		const position = (time / tl.totalDuration()) * timelineSize;
+		query.one('.snap-points')!.appendChild(el);
+		const position = (labelTime / tl.totalDuration()) * timelineSize;
 		snapPoints.push(position);
-		el.classList.add('snap');
+		el.classList.add('snap-point');
 		el.style.marginTop = `${position - snapPoints[i]}px`;
 	});
 	snapPoints.shift();
-	console.log(snapPoints);
 
 	const incrementSnapPos = (increment: number) => {
 		const dists = snapPoints.map((pos) => Math.abs(pos - scroller.top));
@@ -113,8 +112,8 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		scroller.to(snapPoints[clamp(current + increment, 0, snapPoints.length - 1)]);
 	};
 
-	queryOne('.back')?.addEventListener('click', () => incrementSnapPos(-1));
-	queryOne('.next')?.addEventListener('click', () => incrementSnapPos(1));
+	query.one('.back')?.addEventListener('click', () => incrementSnapPos(-1));
+	query.one('.next')?.addEventListener('click', () => incrementSnapPos(1));
 
 	let dragStartPos = window.scrollY;
 	Observer.create({
@@ -130,30 +129,23 @@ import TimelineItem from '@/components/TimelineItem.astro';
 			if (!e.isDragging || !e.startX || !e.x) return;
 			const target = dragStartPos - (e.x - e.startX) * 5;
 			window.scrollBy(0, target - window.scrollY);
-			queryOne('.bottom-bar')!.style.transform = `translateX(${target / -5}px)`;
+			query.one('.bottom-bar')!.style.transform = `translateX(${target / -5}px)`;
 		}
 	});
 
-	const html = queryOne('html')!;
+	const html = query.one('html')!;
 	html.style.scrollBehavior = 'smooth';
 	html.style.scrollSnapType = 'y mandatory';
 </script>
 
 <Layout title="Wytze Sligting">
 	<div class="trigger"></div>
-	<div class="snaps contents relative"></div>
-	<div class="snap h-screen"></div>
+	<div class="snap-points contents relative"></div>
+	<div class="snap-point h-screen"></div>
 
 	<style is:global lang="postcss">
-		 .snap {
+		 .snap-point {
 			@apply snap-start relative w-full min-h-[1px] mb-[-1px];  
-		}
-	</style>
-
-	<style lang="postcss" is:global>
-		.scroll-timeline {
-			perspective: 1000px;
-			transform-style: preserve-3d;
 		}
 	</style>
 
@@ -171,17 +163,19 @@ import TimelineItem from '@/components/TimelineItem.astro';
 			<h2 class="font-light">Contact me</h2>
 		</nav>
 
-		<div class="scroll-timeline flex-grow overflow-hidden rounded-md border bg-background">
+		<div
+			class="scroll-timeline transform-style-3d perspective-1000 flex-grow overflow-hidden rounded-md border bg-background"
+		>
 			<div class="canvas absolute pointer-events-none inset-0">
 				<WebglCanvas delay={500} />
 			</div>
 
 			<div class="home-title absolute inset-0 flex justify-center">
-				<div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent"></div>
-				<h1 class="text-8xl uppercase h-full pb-4 flex flex-col justify-end">
-					<!-- <div>I build ideas.</div>
-					<div class="text-[0.5em]">One pixel at a time.</div> -->
-				</h1>
+				<div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent"></div>
+				<div class="uppercase h-full pb-4 flex flex-col justify-end">
+					<h1 class="text-7xl">I build ideas.</h1>
+					<h2 class="text-base text-muted-foreground">One pixel at a time.</h2>
+				</div>
 			</div>
 			<TimelineItem class="about">
 				<div class="image overflow-hidden bg-background border rounded-md">

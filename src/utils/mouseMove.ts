@@ -26,5 +26,12 @@ export const createMouseListener = () => {
 		eventListeners.forEach((e) => e.stop());
 	};
 
-	return { event, listen, kill };
+	const intersects = (el: HTMLElement) => {
+		if (!event) return false;
+		const rect = el.getBoundingClientRect();
+		const { clientX: x, clientY: y } = event;
+		return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+	};
+
+	return { event, listen, kill, intersects };
 };
