@@ -1,7 +1,7 @@
 import gsap from 'gsap';
 import ScrollSmoother from 'gsap/dist/ScrollSmoother';
 import ScrollTrigger from 'gsap/dist/ScrollTrigger';
-import { queryFirst } from './generalUtils';
+import { queryOne } from './generalUtils';
 
 type Subscriber = (progress?: number) => {};
 const subscribers: Subscriber[] = [];
@@ -15,5 +15,5 @@ export const scroller = {
 		scroller.top = top;
 		subscribers.forEach((fn) => fn(scroller.top));
 	},
-	to: (target: number) => queryFirst('html')!.scrollTo(0, target)
+	to: (target: number) => window!.scrollTo(0, target)
 };

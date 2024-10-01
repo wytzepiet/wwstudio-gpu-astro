@@ -15,7 +15,7 @@ import TimelineItem from '@/components/TimelineItem.astro';
 ---
 
 <script>
-	import { query, queryFirst, timeout } from '../utils/generalUtils';
+	import { queryAll, queryOne } from '../utils/generalUtils';
 	import { gsap } from 'gsap';
 	import { SplitText } from 'gsap/dist/SplitText';
 	import ScrollTrigger from 'gsap/dist/ScrollTrigger';
@@ -33,18 +33,14 @@ import TimelineItem from '@/components/TimelineItem.astro';
 	gsap.from('.home-title h1', { duration: 2, delay: 1.2, ease: 'power4.out', scale: 0.2 });
 	gsap.from('.home-title h1', { duration: 2, delay: 1.2, opacity: 0 });
 
-	const timelineItems = query('.scroll-timeline .item');
+	const timelineItems = queryAll('.scroll-timeline .item');
 	const timelineSize = (timelineItems.length + 4) * window.innerHeight;
+
 	export const tl = gsap.timeline({
-		scrollTrigger: {
-			scroller: 'html',
-			trigger: '.trigger',
-			start: '0px',
-			end: `+=${timelineSize}px`,
-			scrub: 2,
-			onUpdate: () => {
-				scroller.update(tl.progress() * timelineSize);
-			}
+		scrollTrigger: { start: 0, end: timelineSize, scrub: 2 },
+		onUpdate: () => {
+			scroller.update(tl.progress() * timelineSize);
+			queryOne('.bottom-bar')!.style.transform = `translateX(${-scroller.top / 5}px)`;
 		}
 	});
 
@@ -96,31 +92,20 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		tl.to(item, { duration: 0.001, pointerEvents: 'none', onReverseComplete: listenToMouse });
 	});
 	tl.to('.canvas', { duration: 1, filter: 'blur(0px)', opacity: 0.6, ease: 'power1.inOut' }, '<');
-	tl.to('.bottom-bar', { duration: tl.totalDuration(), x: '-100vw' }, 0);
 
 	tl.to('.canvas', { duration: 3, opacity: 0.2, ease: 'power1.in' }, 'item-0');
-
-	const nearestLabelTime = (time = tl.rawTime()) => {
-		const distToCurr = time - tl.labels[tl.currentLabel()];
-		const distToNext = tl.labels[tl.nextLabel()] - time;
-		return tl.labels[distToCurr < distToNext ? tl.currentLabel() : tl.nextLabel()];
-	};
-	// const updateScrollPos = () => scroller.scrollTo(tl.progress() * scroller.scrollTrigger.end, false);
-	const updateScrollPos = () => {};
-
-	CustomEase.create('snappy', '.26,0,0,.99');
-	const tweenVars: gsap.TweenVars = { duration: 1.4, ease: 'snappy', onUpdate: updateScrollPos };
 
 	let snapPoints = [0];
 	Object.values(tl.labels).forEach((time, i) => {
 		const el = document.createElement('div');
-		queryFirst('.snaps')!.appendChild(el);
+		queryOne('.snaps')!.appendChild(el);
 		const position = (time / tl.totalDuration()) * timelineSize;
 		snapPoints.push(position);
 		el.classList.add('snap');
 		el.style.marginTop = `${position - snapPoints[i]}px`;
 	});
 	snapPoints.shift();
+	console.log(snapPoints);
 
 	const incrementSnapPos = (increment: number) => {
 		const dists = snapPoints.map((pos) => Math.abs(pos - scroller.top));
@@ -128,30 +113,28 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		scroller.to(snapPoints[clamp(current + increment, 0, snapPoints.length - 1)]);
 	};
 
-	queryFirst('.back')?.addEventListener('click', () => incrementSnapPos(-1));
-	queryFirst('.next')?.addEventListener('click', () => incrementSnapPos(1));
+	queryOne('.back')?.addEventListener('click', () => incrementSnapPos(-1));
+	queryOne('.next')?.addEventListener('click', () => incrementSnapPos(1));
 
-	function scroll(amount: number) {
-		// const target = scroller.progress + amount;
-		// scroller.scrollTop(target * scroller.scrollTrigger.end);
-		const keepGoing = !obs.isDragging && Math.abs(amount) > 0.0001;
-		if (keepGoing) requestAnimationFrame(() => scroll((amount *= 0.9)));
-	}
-
-	const obs = Observer.create({
+	let dragStartPos = window.scrollY;
+	Observer.create({
 		target: '.bottom-bar-wrapper',
 		type: 'pointer, touch',
-		tolerance: 0.00001,
-		onDragStart: () => document.body.classList.add('select-none'),
+		tolerance: 0.0001,
+		onDragStart: () => {
+			document.body.classList.add('select-none');
+			dragStartPos = window.scrollY;
+		},
 		onDragEnd: () => document.body.classList.remove('select-none'),
-		onChangeX: () => {
-			if (!obs.isDragging) return;
-			const amount = -obs.deltaX / window.innerWidth;
-			if (Math.abs(amount) > 1 / window.innerWidth) requestAnimationFrame(() => scroll(amount));
+		onDrag: (e) => {
+			if (!e.isDragging || !e.startX || !e.x) return;
+			const target = dragStartPos - (e.x - e.startX) * 5;
+			window.scrollBy(0, target - window.scrollY);
+			queryOne('.bottom-bar')!.style.transform = `translateX(${target / -5}px)`;
 		}
 	});
 
-	const html = queryFirst('html')!;
+	const html = queryOne('html')!;
 	html.style.scrollBehavior = 'smooth';
 	html.style.scrollSnapType = 'y mandatory';
 </script>
@@ -163,7 +146,7 @@ import TimelineItem from '@/components/TimelineItem.astro';
 
 	<style is:global lang="postcss">
 		 .snap {
-			@apply snap-start relative w-full border;  
+			@apply snap-start relative w-full min-h-[1px] mb-[-1px];  
 		}
 	</style>
 
