@@ -12,6 +12,8 @@ interface Props {
 	import { scroller } from '../utils/scroller';
 	import { query, timeout } from '../utils/generalUtils';
 
+	import gsap from 'gsap';
+
 	const canvas = query.one('#canvas') as HTMLCanvasElement;
 	const delayAttribute = canvas.getAttribute('data-delay');
 	const delay = delayAttribute ? parseFloat(delayAttribute) : 0;
@@ -81,6 +83,8 @@ interface Props {
 		gl.uniform1f(uLoc('u_far'), far);
 		gl.uniform1f(uLoc('u_near'), near);
 
+		const mouse = new THREE.Vector2(canvas.height / 2, canvas.width / 2);
+
 		function resize() {
 			if (!canvas) return window.removeEventListener('resize', resize);
 			gl.useProgram(boidsProgram);
@@ -90,15 +94,19 @@ interface Props {
 			gl.uniform3f(uLoc('u_canvasSize'), canvas.width, canvas.height, 1000);
 
 			camera.aspect = canvas.width / canvas.height;
-			let progress = scroller.top / 2;
-			// if (progress > 1500) progress -= document.body.scrollHeight + window.innerHeight - 1500;
-			if (progress > 1300) progress = 0;
+			let progress = scroller.top;
+			if (progress > cameraDist) progress = 0;
+			progress *= 1.5;
 
-			const camY = Math.sin(progress) * -cameraDist;
-			const camZ = Math.cos(progress) * -cameraDist;
-			// camera.position.set(0, camY, camZ);
-			camera.position.set(0, 0, progress - cameraDist);
-			camera.lookAt(0, 0, 100000);
+			let dist = cameraDist - progress;
+			// if (progress > 1500) progress -= document.body.scrollHeight + window.innerHeight - 1500;
+			// if (dist < 0) dist = cameraDist;
+
+			const mouseFactor = mouse.clone().divideScalar(5) ?? { x: 0, y: 0 };
+			const camAngle = Math.asin(mouseFactor.length() / dist);
+			const { x, y } = mouseFactor.normalize().multiplyScalar(-dist * Math.sin(camAngle));
+			camera.position.set(x, y, -dist * Math.cos(camAngle));
+			camera.lookAt(0, 0, progress - 400);
 
 			camera.updateMatrixWorld();
 			camera.updateProjectionMatrix();
@@ -209,15 +217,16 @@ interface Props {
 		const data = Array.from({ length: 3 }).map(() => new Float32Array(NUM_BOIDS * 3));
 		const [positions, velocities, deviationVels] = data;
 
-		function randomVec(): THREE.Vector3 {
-			const vec = new THREE.Vector3().random().multiplyScalar(2).subScalar(1);
-			return vec.length() > 1 ? randomVec() : vec;
+		function randomVec(): THREE.Vector2 {
+			const vec = new THREE.Vector2().random().multiplyScalar(2).subScalar(1);
+			return vec.length() > 1 ? randomVec() : vec.normalize();
 		}
 
 		for (let i = 0; i < NUM_BOIDS * 3; i += 3) {
-			// velocities.set([...randomVec()], i);
+			velocities.set([...randomVec()], i);
 			positions.set([...randomVec()], i);
-			positions[i + 2] -= cameraDist - 200;
+			// positions[i + 2] -= cameraDist - 20;
+			positions[i + 2] = -1;
 		}
 
 		const buffers = data.map((data) => [createBuffer(gl, data), createBuffer(gl, data)]);
@@ -228,13 +237,15 @@ interface Props {
 		const gradientTexture = createRadialGradientTexture(gl, 64)!;
 		const gradientTextureLoc = gl.getUniformLocation(boidsProgram, 'u_gradientTexture');
 
-		const mouse = new THREE.Vector2(canvas.height / 2, canvas.width / 2);
+		// const mouse = new THREE.Vector2(canvas.height / 2, canvas.width / 2);
 		const prevMouse = mouse.clone();
 
 		timeout(delay + 1000).then(() => {
 			window.addEventListener('mousemove', ({ clientX, clientY }) => {
 				const { left, top, width, height } = canvas.getBoundingClientRect();
-				mouse.set(left + width / 2 - clientX, top + height / 2 - clientY);
+				const x = left + width / 2 - clientX;
+				const y = top + height / 2 - clientY;
+				gsap.to(mouse, { x, y, duration: 0.5, onUpdate: resize });
 			});
 			window.addEventListener('mousemove', () => prevMouse.set(mouse.x, mouse.y), { once: true });
 		});

@@ -36,22 +36,17 @@ import TimelineItem from '@/components/TimelineItem.astro';
 	// gsap.from('.home-title h1', { duration: 2, delay: 1.2, ease: 'power4.out', scale: 0.2 });
 	// gsap.from('.home-title h1', { duration: 2, delay: 1.2, opacity: 0 });
 	const titleText = new SplitText('.home-title', { type: 'chars, words' });
-	gsap.from(titleText.chars, { ...flickerVars, delay: 2, duration: 1.5 });
+	gsap.from(titleText.chars, { ...flickerVars, delay: 3, duration: 1.5 });
 
 	const timelineItems = query.all('.scroll-timeline .item');
-	const timelineSize = (timelineItems.length + 4) * window.innerHeight;
+	const timelineSize = (timelineItems.length + 2) * 500;
 
 	export const tl = gsap.timeline({
-		scrollTrigger: { start: 0, end: timelineSize, scrub: 2 },
-		onUpdate: () => {
-			scroller.update(tl.progress() * timelineSize);
-			query.one('.bottom-bar')!.style.transform = `translateX(${-scroller.top / 5}px)`;
-		}
+		scrollTrigger: { start: 0, end: timelineSize, scrub: 1 }
 	});
 
-	tl.addLabel('start');
-	tl.to('.home-title', { duration: 1, translateZ: 600, pointerEvents: 'none', ease: 'linear' });
-	tl.to('.canvas', { duration: 1, filter: 'blur(20px)', opacity: 0 }, '>+2');
+	// tl.addLabel('start');
+	// tl.to('.home-title', { duration: 1, translateZ: 600, pointerEvents: 'none', ease: 'linear' });
 
 	timelineItems.forEach((item, i) => {
 		const queryItem = createQuery(item);
@@ -65,37 +60,52 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		if (chars) itemTl.from(chars, flickerVars, '<');
 
 		const inner = queryItem.one('.inner');
-		const mouse = createMouseListener();
 
-		const listenToMouse = () => {
-			mouse.kill();
-			mouse.listen(({ clientX, clientY }) => {
-				if (item.style.opacity == '0') return mouse.kill();
-				const onTl = mouse.intersects(query.one('.scroll-timeline')!);
-				const rotateX = onTl ? (clientY - window.innerHeight / 2) / -40 : 0;
-				const rotateY = onTl ? (clientX - window.innerWidth / 2) / 40 : 0;
+		const mouseObs = Observer.create({
+			type: 'pointer',
+
+			onMove: ({ x, y }) => {
+				if (item.style.opacity == '0' || !x || !y) return mouseObs.disable();
+
+				const rect = query.one('.scroll-timeline')!.getBoundingClientRect();
+				const onTl = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+
+				const rotateX = onTl ? (y - window.innerHeight / 2) / -40 : 0;
+				const rotateY = onTl ? (x - window.innerWidth / 2) / 40 : 0;
 				gsap.to(inner, { duration: 0.5, rotateX, rotateY });
-			});
-		};
+			}
+		});
+
 		const onStart = () => {
 			itemTl.restart();
-			listenToMouse();
+			mouseObs.enable();
 		};
 
 		const linear = { ease: 'linear', duration: 1 };
 
-		tl.from(item, { duration: 0.001, pointerEvents: 'none' }, i == 0 ? '<' : '>');
-		tl.from(item, { ...linear, duration: 0.5, opacity: 0 }, '<');
-		tl.from(inner, { ...linear, translateZ: -600, onStart }, '<');
+		if (i > 0) {
+			tl.from(item, { duration: 0.001, pointerEvents: 'none' }, i == 0 ? '<' : '>');
+			tl.from(item, { ...linear, duration: 0.5, opacity: 0 }, '<');
+			tl.from(inner, { ...linear, translateZ: -600, onStart }, '<');
+		}
+
 		tl.addLabel(`item-${i}`);
 		if (i == timelineItems.length - 1) return;
 		tl.to(inner, { ...linear, translateZ: 600 });
 		tl.to(item, { ...linear, duration: 0.5, opacity: 0 }, '<+0.5');
-		tl.to(item, { duration: 0.001, pointerEvents: 'none', onReverseComplete: listenToMouse });
+		tl.to(item, { duration: 0.001, pointerEvents: 'none', onReverseComplete: () => mouseObs.enable() as any as void });
 	});
 
-	tl.to('.canvas', { duration: 1, filter: 'blur(0px)', opacity: 0.6, ease: 'power1.inOut' }, '<');
-	tl.to('.canvas', { duration: 3, opacity: 0.2, ease: 'power1.in' }, 'item-0');
+	tl.to('.canvas', { duration: 1, filter: 'blur(0px)', opacity: 0.8, ease: 'power1.inOut' }, '<');
+
+	tl.to('.canvas', { duration: 1, filter: 'blur(20px)', opacity: 0 }, 1);
+	tl.to('.canvas', { duration: 2, opacity: 0.2, ease: 'power1.in' }, 'item-1');
+
+	const fullDuration = { duration: tl.totalDuration(), ease: 'none' };
+	const updateScrollPos = { onUpdate: () => scroller.update(tl.progress() * timelineSize) };
+	tl.to('.bottom-bar', { ...fullDuration, x: -timelineSize / 5, ...updateScrollPos }, 0);
+
+	// tl.to('.dots', { ...fullDuration, translateZ: 500 }, 0);
 
 	let snapPoints = [0];
 	Object.values(tl.labels).forEach((labelTime, i) => {
@@ -108,30 +118,43 @@ import TimelineItem from '@/components/TimelineItem.astro';
 	});
 	snapPoints.shift();
 
+	const snapTo = (pos: number) => scroller.to(snapPoints[clamp(pos, 0, snapPoints.length - 1)]);
 	const incrementSnapPos = (increment: number) => {
 		const dists = snapPoints.map((pos) => Math.abs(pos - scroller.top));
 		const current = dists.indexOf(Math.min(...dists));
-		scroller.to(snapPoints[clamp(current + increment, 0, snapPoints.length - 1)]);
+		snapTo(current + increment);
 	};
 
 	query.one('.back')?.addEventListener('click', () => incrementSnapPos(-1));
 	query.one('.next')?.addEventListener('click', () => incrementSnapPos(1));
 
-	let dragStartPos = window.scrollY;
-	Observer.create({
+	query.one('.contact')?.addEventListener('click', () => snapTo(snapPoints.length - 1));
+
+	const dragBottomBar = (startPos: number) => {
+		if (!obs.isDragging || !obs.startX || !obs.x) return;
+		const target = startPos - (obs.x - obs.startX) * 5;
+		window.scrollBy(0, target - window.scrollY);
+		query.one('.bottom-bar')!.style.transform = `translateX(${clamp(target, 0, timelineSize) / -5}px)`;
+		requestAnimationFrame(() => dragBottomBar(startPos));
+	};
+	const obs = Observer.create({
 		target: '.bottom-bar-wrapper',
 		type: 'pointer, touch',
 		tolerance: 0.0001,
 		onDragStart: () => {
 			document.body.classList.add('select-none');
-			dragStartPos = window.scrollY;
+			dragBottomBar(window.scrollY);
 		},
-		onDragEnd: () => document.body.classList.remove('select-none'),
-		onDrag: (e) => {
-			if (!e.startX || !e.x) return;
-			const target = dragStartPos - (e.x - e.startX) * 5;
-			window.scrollBy(0, target - window.scrollY);
-			query.one('.bottom-bar')!.style.transform = `translateX(${clamp(target, 0, timelineSize) / -5}px)`;
+		onDragEnd: () => document.body.classList.remove('select-none')
+	});
+
+	Observer.create({
+		type: 'pointer',
+		onMove: ({ x, y }) => {
+			if (!x || !y) return;
+			const { top, left } = query.one('.fixed-content')!.getBoundingClientRect();
+			gsap.to('.mouse-border', { duration: 0.2, x: x - left, y: y - top });
+			gsap.to('.mouse-point', { duration: 0.01, x: x - left, y: y - top });
 		}
 	});
 
@@ -147,48 +170,76 @@ import TimelineItem from '@/components/TimelineItem.astro';
 
 	<style is:global lang="postcss">
 		 .snap-point {
-			@apply snap-start relative w-full min-h-[1px] mb-[-1px];  
+			@apply snap-start snap-always relative w-full min-h-[1px] mb-[-1px];  
 		}
 	</style>
 
-	<div class="fixed-content fixed overflow-hidden inset-0 p-2 flex gap-2 flex-col items-stretch justify-start z-30">
+	<div
+		class="fixed-content cursor-none fixed overflow-hidden inset-0 p-2 flex gap-2 flex-col items-stretch justify-start z-30"
+	>
+		<div class="mouse mouse-border">
+			<div
+				class="absolute p-3 rounded-full border border-vibrant/25 bg-background/40 backdrop-blur-[2px] shadow-lg shadow-background/40"
+			>
+			</div>
+		</div>
+		<div class="mouse mouse-point">
+			<div class="absolute w-[6px] h-[6px] bg-foreground rounded-full"></div>
+		</div>
+		<style lang="postcss">
+			.mouse {
+				@apply z-30 pointer-events-none fixed w-0 h-0 inset-0 flex items-center justify-center
+			}
+		</style>
+
 		<nav class="nav flex justify-between py-1 px-2 uppercase tracking-widest text-muted-foreground">
-			<h2 class="font-light">Wytze Sligting</h2>
-			<h2 class="font-light opacity-50">|||</h2>
+			<p class="font-light">Wytze Sligting</p>
+			<p class="font-light opacity-50">|||</p>
 			<!-- <div>
 			<p>+ Home</p>
 			<p>Projects</p>
 			<p>About</p>
 		</div> -->
-			<h2 class="font-light">Creative developer</h2>
-			<h2 class="font-light opacity-50">|||</h2>
-			<h2 class="font-light">Contact me</h2>
+			<p class="font-light">Creative developer</p>
+			<p class="font-light opacity-50">|||</p>
+			<p class="contact font-light cursor-pointer">Contact me</p>
 		</nav>
 
 		<div
 			class="scroll-timeline transform-style-3d perspective-1000 flex-grow overflow-hidden rounded-md border bg-background"
 		>
+			<!-- <Image src={sky} alt="" class="absolute inset-0 w-full h-full object-cover grayscale mix-blend-overlay" /> -->
+
 			<div class="canvas absolute pointer-events-none inset-0">
 				<WebglCanvas delay={500} />
 			</div>
 
-			<div class="home-title absolute inset-0 flex justify-center">
-				<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent"></div>
-				<div class="uppercase h-full pb-4 flex flex-col justify-end">
-					<h1 class="text-7xl">I build ideas.</h1>
-					<h2 class="text-base text-muted-foreground">One pixel at a time.</h2>
+			<TimelineItem class="home-title">
+				<div class="h-screen w-screen flex flex-col items-center">
+					<div class="absolute inset-0 -scale-x-150 scale-y-125 bg-gradient-to-t from-background via-transparent"></div>
+					<div class="uppercase h-full pb-[10vh] flex flex-col justify-end">
+						<h1 class="text-7xl">I build ideas.</h1>
+						<h2 class="text-base text-muted-foreground">One pixel at a time.</h2>
+					</div>
 				</div>
-			</div>
+			</TimelineItem>
 			<TimelineItem class="about">
-				<div class="image overflow-hidden bg-background border rounded-md">
-					<Image src={Me} alt="" class="w-32 mix-blend-screen" width={600} />
-				</div>
-				<br />
-				<div class="animate-text text-center font-normal">
-					<p>Hey! I'm Wytze.</p>
-					<p>A freelance computer nerd</p>
-					<p>with an eye for design. I love</p>
-					<p>to make an idea come to life.</p>
+				<div class="flex flex-col items-center">
+					<div class="image overflow-hidden bg-background border rounded-md">
+						<Image src={Me} alt="" class="w-32 mix-blend-screen" width={600} />
+						<img
+							src="/noise2.gif"
+							alt=""
+							class="absolute inset-0 h-full w-full object-cover opacity-[0.1] mix-blend-luminosity pointer-events-none"
+						/>
+					</div>
+					<br />
+					<div class="animate-text text-center font-normal">
+						<p>Hey! I'm Wytze.</p>
+						<p>A freelance computer nerd</p>
+						<p>with an eye for design. I love</p>
+						<p>to make an idea come to life.</p>
+					</div>
 				</div>
 			</TimelineItem>
 
@@ -239,53 +290,62 @@ import TimelineItem from '@/components/TimelineItem.astro';
 
 			<TimelineItem>
 				<div class="contact animate-text flex flex-col items-start">
-					<h2 class="text-9xl uppercase translate-z-4">Let's<br />chat</h2>
+					<h2 class="text-9xl uppercase translate-z-4 drop-shadow-lg">Let's<br />chat</h2>
 
-					<div class="bg-background/50 rounded-md border backdrop-blur">
-						<p class="text-foreground/65 p-2">
-							Contact me for full time jobs, <br />
-							freelance projects or just to <br />
-							say hello :-)
-						</p>
-						<div class="border-t px-2 py-1">
-							<a href="/" class="translate-z-3 block">hello@wytze.dev</a>
+					<a href="mailto:hello@wytze.dev" class="pb-4 block relative">
+						<div class="rounded-md hover:bg-foreground/15">
+							<div class="bg-background/50 rounded-md border backdrop-blur">
+								<p class="text-foreground/65 p-2">
+									Contact me for full time jobs, <br />
+									freelance projects or just to <br />
+									say hello :-)
+								</p>
+								<div class="border-t px-2 py-1">
+									<p class="translate-z-3 block">hello@wytze.dev</p>
+								</div>
+							</div>
 						</div>
-					</div>
+					</a>
 				</div>
 			</TimelineItem>
-
-			<!-- <img
-				src="/noise.gif"
-				alt=""
-				class="absolute h-full w-full object-cover opacity-[0.03] mix-blend-luminosity pointer-events-none"
-			/> -->
 		</div>
 		<div class="flex gap-2">
 			<div class="back tl-control">back</div>
 			<div
-				class="bottom-bar-wrapper relative w-full overflow-hidden select-none border cursor-grab active:cursor-grabbing"
+				class="bottom-bar-wrapper relative w-full overflow-hidden select-none rounded-md border cursor-grab active:cursor-grabbing"
 			>
-				<div class="bottom-bar flex gap-1 items-center p-1 w-[400rem] h-full">
+				<div class="bottom-bar flex gap-1 items-center w-[300rem] h-full">
 					<!-- {Array.from({ length: 1000 }).map(() => <div class="line" />)} -->
 					<svg width="100%" height="1.1rem">
-						<g class="stroke-muted-foreground/50">
-							{
-								Array.from({ length: 1000 }).map((_, i) => {
-									const x = `${i * 0.4}rem`;
-									const y = i % 10 == 0 ? '0' : '30%';
-									const height = i % 10 == 0 ? '100%' : '70%';
-									return <rect {x} {y} width="0.4" {height} />;
-								})
-							}
-						</g>
+						<!-- {
+							Array.from({ length: 1000 }).map((_, i) => {
+								const x = `${i * 0.3}rem`;
+								const y1 = i % 10 == 0 ? '0' : '30%';
+								const y2 = i % 10 == 0 ? '100%' : '70%';
+								return <line x1={x} x2={x} {y1} {y2} class="stroke-muted-foreground/50" />;
+							})
+						} -->
+						<defs>
+							<pattern id="stripes" patternUnits="userSpaceOnUse" width="3rem" height="100%">
+								{
+									Array.from({ length: 10 }).map((_, i) => {
+										const x = `${i * 0.3 + 0.1}rem`;
+										const y1 = i % 10 == 0 ? '0' : '30%';
+										const y2 = i % 10 == 0 ? '100%' : '70%';
+										return <line x1={x} x2={x} {y1} {y2} class="stroke-muted-foreground/50" />;
+									})
+								}
+							</pattern>
+						</defs>
+						<rect width="100%" height="100%" fill="url(#stripes)"></rect>
 					</svg>
 				</div>
-				<div class="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80"></div>
+				<div class="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/70"></div>
 			</div>
-			<div class="next tl-control">Next</div>
+			<div class="next tl-control">next</div>
 			<style lang="postcss">
 				.tl-control {
-					@apply p-2 rounded-sm border bg-black text-muted-foreground/60 cursor-pointer select-none hover:bg-muted-foreground/15 active:bg-muted-foreground/25;
+					@apply p-[0.4rem] rounded-md border bg-black text-muted-foreground/60 cursor-pointer select-none hover:bg-muted-foreground/15 active:bg-muted-foreground/25;
 				}
 			</style>
 		</div>

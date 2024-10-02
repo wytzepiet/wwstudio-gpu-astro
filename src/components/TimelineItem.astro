@@ -1,4 +1,6 @@
 ---
+import DotPattern from './dotPattern.astro';
+
 interface Props {
 	class?: string;
 }
@@ -6,7 +8,12 @@ interface Props {
 
 <div class:list={['item absolute inset-0', Astro.props.class]}>
 	<div class="inner absolute inset-0 flex flex-col items-center justify-center">
-		<slot />
+		<div class="absolute h-[200%] w-[200%] inset-[-50%] translate-z-[-50px]">
+			<DotPattern />
+		</div>
+		<div class="translate-z-10 scale-95">
+			<slot />
+		</div>
 	</div>
 </div>
 

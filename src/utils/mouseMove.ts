@@ -7,14 +7,9 @@ type MouseListener = (position: MouseEvent) => any;
 export const createMouseListener = () => {
 	let mouseListeners: MouseListener[] = [];
 
-	const update = () => event && mouseListeners.forEach((fn) => fn(event));
+	const update = (e: MouseEvent) => mouseListeners.forEach((fn) => fn(e));
 
-	const eventListeners = [
-		on('mousemove', (e) => (event = e)),
-		on('mousemove', () => update()),
-		on('resize', () => update()),
-		on('scroll', () => update())
-	];
+	const eventListeners = [on('mousemove', (e) => update(e))];
 
 	const listen = (fn: MouseListener) => {
 		mouseListeners.push(fn);
