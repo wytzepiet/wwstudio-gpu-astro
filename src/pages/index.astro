@@ -21,7 +21,6 @@ import TimelineItem from '@/components/TimelineItem.astro';
 	import { RoughEase } from 'gsap/EasePack';
 
 	import { query, createQuery } from '../utils/generalUtils';
-	import { createMouseListener } from '../utils/mouseMove';
 	import { scroller } from '@/utils/scroller';
 
 	import { clamp } from 'three/src/math/MathUtils.js';
@@ -62,7 +61,8 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		const inner = queryItem.one('.inner');
 
 		const rotate = ({ x, y }: { x?: number; y?: number }) => {
-			if (item.style.opacity == '0' || !x || !y) return mouseObs.disable();
+			if (!x || !y) return;
+			if (item.style.opacity == '0') return mouseObs.disable();
 
 			const rect = query.one('.scroll-timeline')!.getBoundingClientRect();
 			const onTl = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
@@ -74,12 +74,16 @@ import TimelineItem from '@/components/TimelineItem.astro';
 
 		const mouseObs = Observer.create({ type: 'pointer', onMove: rotate });
 
-		window.addEventListener('deviceorientation', (e) => {
-			const { beta, gamma } = e;
-			const x = ((beta || 0) / 180) * window.innerWidth;
-			const y = ((gamma || 0) / 90) * window.innerHeight;
-			rotate({ x, y });
-		});
+		window.addEventListener(
+			'deviceorientation',
+			(e) => {
+				const { beta, gamma } = e;
+				const x = ((beta || 0) / 180) * window.innerWidth;
+				const y = ((gamma || 0) / 90) * window.innerHeight;
+				rotate({ x, y });
+			},
+			true
+		);
 
 		const onStart = () => {
 			itemTl.restart();
@@ -130,10 +134,10 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		snapTo(current + increment);
 	};
 
-	query.one('.back')?.addEventListener('click', () => incrementSnapPos(-1));
-	query.one('.next')?.addEventListener('click', () => incrementSnapPos(1));
+	query.one('.back')?.addEventListener('click', () => incrementSnapPos(-1), true);
+	query.one('.next')?.addEventListener('click', () => incrementSnapPos(1), true);
 
-	query.one('.contact')?.addEventListener('click', () => snapTo(snapPoints.length - 1));
+	query.one('.contact')?.addEventListener('click', () => snapTo(snapPoints.length - 1), true);
 
 	const dragBottomBar = (startPos: number) => {
 		if (!obs.isDragging || !obs.startX || !obs.x) return;
@@ -222,7 +226,7 @@ import TimelineItem from '@/components/TimelineItem.astro';
 			<TimelineItem class="home-title">
 				<div class="h-screen w-screen flex flex-col items-center">
 					<div class="absolute inset-0 -scale-x-150 scale-y-125 bg-gradient-to-t from-background via-transparent"></div>
-					<div class="uppercase h-full pb-[10vh] flex flex-col justify-end">
+					<div class="uppercase h-full pb-[10vh] flex flex-col gap-2 justify-end">
 						<h1 class="text-7xl translate-z-4">I build ideas.</h1>
 						<h2 class="text-base text-muted-foreground">One pixel at a time.</h2>
 					</div>

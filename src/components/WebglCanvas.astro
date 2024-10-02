@@ -19,6 +19,7 @@ interface Props {
 	const delay = delayAttribute ? parseFloat(delayAttribute) : 0;
 
 	const NUM_BOIDS = 20000;
+	let currentBoids = NUM_BOIDS;
 
 	async function runBoids() {
 		const gl = canvas.getContext('webgl2', { alpha: true })!;
@@ -123,7 +124,7 @@ interface Props {
 		}
 
 		resize();
-		window.addEventListener('resize', () => requestAnimationFrame(resize));
+		window.addEventListener('resize', () => requestAnimationFrame(resize), true);
 		scroller.subscribe(() => requestAnimationFrame(resize));
 
 		const target = new THREE.Vector3();
@@ -250,7 +251,17 @@ interface Props {
 			window.addEventListener('mousemove', () => prevMouse.set(mouse.x, mouse.y), { once: true });
 		});
 
-		function render() {
+		let prevTime = performance.now();
+		function render(time: number) {
+			const fps = 1000 / (time - prevTime);
+			prevTime = time;
+
+			if (fps < 40) {
+				currentBoids = Math.max(currentBoids - 100, 100);
+			} else if (currentBoids < NUM_BOIDS) {
+				currentBoids = Math.min(currentBoids + 100, NUM_BOIDS);
+			}
+
 			gl.useProgram(updateGridProgram);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, gridFrameBuffer);
 			gl.viewport(0, 0, gridTextureSize.x, gridTextureSize.y);
@@ -262,7 +273,7 @@ interface Props {
 			});
 
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-			gl.drawArrays(gl.POINTS, 0, NUM_BOIDS);
+			gl.drawArrays(gl.POINTS, 0, currentBoids);
 
 			gl.viewport(0, 0, canvas.width, canvas.height);
 
@@ -320,7 +331,7 @@ interface Props {
 				gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 
 				gl.beginTransformFeedback(gl.POINTS);
-				gl.drawArrays(gl.POINTS, 0, NUM_BOIDS);
+				gl.drawArrays(gl.POINTS, 0, currentBoids);
 				gl.endTransformFeedback();
 
 				gl.activeTexture(gl.TEXTURE0);
