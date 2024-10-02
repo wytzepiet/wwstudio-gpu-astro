@@ -218,14 +218,14 @@ import TimelineItem from '@/components/TimelineItem.astro';
 				<div class="h-screen w-screen flex flex-col items-center">
 					<div class="absolute inset-0 -scale-x-150 scale-y-125 bg-gradient-to-t from-background via-transparent"></div>
 					<div class="uppercase h-full pb-[10vh] flex flex-col justify-end">
-						<h1 class="text-7xl">I build ideas.</h1>
+						<h1 class="text-7xl translate-z-4">I build ideas.</h1>
 						<h2 class="text-base text-muted-foreground">One pixel at a time.</h2>
 					</div>
 				</div>
 			</TimelineItem>
 			<TimelineItem class="about">
 				<div class="flex flex-col items-center">
-					<div class="image overflow-hidden bg-background border rounded-md">
+					<div class="image overflow-hidden bg-background border rounded-md translate-z-4">
 						<Image src={Me} alt="" class="w-32 mix-blend-screen" width={600} />
 						<img
 							src="/noise2.gif"
@@ -245,10 +245,10 @@ import TimelineItem from '@/components/TimelineItem.astro';
 
 			<TimelineItem>
 				<h1 class="work animate-text text-9xl uppercase grid grid-cols-2 text-center">
-					<div>w</div>
-					<div>o</div>
+					<div class="translate-z-4">w</div>
+					<div class="translate-z-1">o</div>
 					<div>r</div>
-					<div>k</div>
+					<div class="translate-z-3">k</div>
 				</h1>
 			</TimelineItem>
 			<style>
