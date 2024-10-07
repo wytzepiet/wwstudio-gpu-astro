@@ -7,11 +7,11 @@ interface Props {
 ---
 
 <div class:list={['item absolute inset-0', Astro.props.class]}>
-	<div class="inner absolute inset-0 flex flex-col items-center justify-center">
-		<div class="absolute h-[200%] w-[200%] inset-[-50%] translate-z-[-50px]">
+	<div class="inner absolute inset-0 flex flex-col items-center justify-center transform-style-3d">
+		<div class="absolute h-[200%] w-[200%] inset-[-50%] translate-z-[-100px] transform-style-3d">
 			<DotPattern />
 		</div>
-		<div class="translate-z-10 scale-95">
+		<div class="translate-z-[100px] scale-95 transform-style-3d">
 			<slot />
 		</div>
 	</div>
@@ -25,6 +25,6 @@ interface Props {
 
 <style is:global>
 	.item * {
-		transform-style: preserve-3d;
+		/* transform-style: preserve-3d; */
 	}
 </style>

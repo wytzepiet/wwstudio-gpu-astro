@@ -109,7 +109,7 @@ export function initializeBloomEffect(
 			scene *= 8.0;
 
 			vec4 result = scene + bloom;
-			result.rgb = mapToAsymptote(result.rgb, 1.001, 1.0);
+			result.rgb = mapToAsymptote(result.rgb, 1.01, 1.0);
 			
 			gl_FragColor = result;	
 

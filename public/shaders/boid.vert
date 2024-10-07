@@ -161,7 +161,11 @@ void main() {
     float normalDistToCamera = a_position.z / u_far + 0.5;
     
     float viewDistSq = u_viewDist * u_viewDist;
-    float texIncrement = 1.0 / u_gridTextureSize.x;
+    float separateDistSq = pow(u_viewDist * 0.5, 2.0);
+
+    float texIncrement = 1.0 / u_gridTextureSize.y;
+
+    float maxAlignFactor = 8.0 / u_viewDist;
     
     vec3 separate = vec3(0.0);
     vec3 align = vec3(0.0);
@@ -187,14 +191,12 @@ void main() {
                     vec3 diff = pos - a_position;
                     float distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
          
-                    if(distSq > viewDistSq || distSq < 0.05) continue;
-
-                    float factor = u_viewDist / distSq;
-
-                    separate -= diff * factor;
-                    align += vel * factor;
-                    cohesion += diff;
+                    if(distSq > viewDistSq || distSq < 0.01) continue;
                     
+                    align += vel;
+                    cohesion += diff;
+                    separate -= diff / distSq;
+
                     count++;
 
                 }
@@ -202,28 +204,32 @@ void main() {
         }
     }
 
-    float opacity = (count - 2.0) / 16.0;
+    float opacity = (count - 2.0) / 12.0;
     alpha = min(opacity, 1.0);
+    // alpha = 1.0;
 
-    cohesion /= max(count, 10.0);
+    // separate and cohesion calculations: https://www.desmos.com/calculator/jfmmtst3lv
+    separate *= u_viewDist;
 
-    separate *= 0.1;
-    align *= 0.4;
-    cohesion *= 0.08;
+    align *= 1.0 / (max(count, 4.0) * u_maxSpeed);
+    cohesion *= 4.0 / (max(count, 12.0) * u_viewDist);
+
+    separate *= 1.0;
+    align *= 9.0;
+    cohesion *= 10.0;
 
     vec3 flockForce = separate + align + cohesion;
     
     vec3 seekForce = u_target - a_position; 
     seekForce = normalize(seekForce);
-    seekForce *= 0.8;
+    seekForce *= 1.0;
 
-    float countFactor = 30.0 / count;
-    countFactor = clamp(countFactor, 1.0, 1.5);
-
-    float maxForce = u_maxForce * countFactor;
+    float maxForce = u_maxForce;
     vec3 boidForce = limit(flockForce + seekForce, maxForce);
 
-    vec3 deviationVel = a_deviationVel * 0.93;
+    boidForce.y += 0.005; // account for mysterious downward force
+
+    vec3 deviationVel = a_deviationVel * 0.93; // slowly decrease deviation velocity
     vec2 deviationForce = vec2(0.0);
 
     if(u_mouse != u_prevMouse) {
@@ -231,19 +237,21 @@ void main() {
         vec2 prevMouse = unproject(u_prevMouse, a_position.z).xy;
 
         vec2 mouseDiff = diffToLineSegment(a_position.xy, prevMouse, mouse);
-        float mouseDist = length(mouseDiff);
+        float mouseDistSq = mouseDiff.x * mouseDiff.x + mouseDiff.y * mouseDiff.y;
 
-        if(mouseDist < 100.0) {  
+        if(mouseDistSq < pow(100.0, 2.0)) {  
             vec2 mouseVel = u_prevMouse - u_mouse;
             vec2 alignForce = mouseVel * 3.0;
-            vec2 avoidForce = mouseDiff * 0.1 * min(length(mouseVel), 20.0);
+            vec2 avoidForce = mouseDiff * 0.1 * min(length(mouseVel), 30.0);
             deviationForce = alignForce + avoidForce;
-            deviationForce *= -10.0 / (mouseDist * mouseDist);
+            deviationForce *= -1.0 / mouseDistSq;
+            deviationForce *= 6.0;
             deviationVel += vec3(deviationForce, 0.0);
         }
     }
 
-    float maxDeviationVel = 4.0 + 5.0 * normalDistToCamera;
+    float maxDeviationVel = 0.5 + 0.5 * normalDistToCamera;
+    maxDeviationVel *= u_maxSpeed * 1.5;
 
     deviationVel = limit(deviationVel, maxDeviationVel);
     v_deviationVel = deviationVel;
@@ -251,7 +259,7 @@ void main() {
     vec3 force = boidForce + vec3(deviationForce, 0.0);
     float maxSpeed = u_maxSpeed + length(deviationVel);
 
-    vec3 newVelocity = limit(a_velocity + force, maxSpeed);
+    vec3 newVelocity = normalize(a_velocity + force) * maxSpeed;
 
     vec3 newPosition = a_position + newVelocity ;
 
@@ -261,7 +269,7 @@ void main() {
     vec4 clipSpace = project(newPosition);
     
     float k = 20.0;
-    float activation = 1.0 / (1.0 + exp((0.5 - normalDistToCamera ) * k));
+    float activation = 1.0 / (1.0 + exp((0.5 - normalDistToCamera) * k));
 
     vec3 hsl = mix(rgbToHsl(u_color1), rgbToHsl(u_color2), activation);
     rgb = hslToRgb(hsl);
