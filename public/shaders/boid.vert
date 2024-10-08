@@ -215,8 +215,8 @@ void main() {
     cohesion *= 4.0 / (max(count, 18.0) * u_viewDist);
 
     separate *= 1.0;
-    align *= 6.0;
-    cohesion *= 10.0;
+    align *= 7.0;
+    cohesion *= 11.0;
 
     vec3 flockForce = separate + align + cohesion;
     
