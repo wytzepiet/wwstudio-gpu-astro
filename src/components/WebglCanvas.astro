@@ -148,7 +148,7 @@ interface Props {
 			return vec;
 		};
 
-		const target = randomVec2().multiplyScalar(0.3);
+		const target = randomVec2().multiplyScalar(0.35);
 		const keepMovingTheTarget = () => {
 			target.rotateAround({ x: 0, y: 0 }, (0.5 + Math.random()) * Math.PI);
 			moveTarget(target);
@@ -222,7 +222,7 @@ interface Props {
 		const [positions, velocities, deviationVels] = data;
 
 		for (let i = 0; i < NUM_BOIDS * 3; i += 3) {
-			const vec = randomVec3().multiplyScalar(1);
+			const vec = randomVec3();
 			// velocities.set([...vec], i);
 			positions.set([...vec], i);
 		}

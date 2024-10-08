@@ -211,11 +211,11 @@ void main() {
     // separate and cohesion calculations: https://www.desmos.com/calculator/jfmmtst3lv
     separate *= u_viewDist;
 
-    align *= 1.0 / (max(count, 4.0) * u_maxSpeed);
-    cohesion *= 4.0 / (max(count, 12.0) * u_viewDist);
+    align *= 1.0 / (max(count, 6.0) * u_maxSpeed);
+    cohesion *= 4.0 / (max(count, 18.0) * u_viewDist);
 
     separate *= 1.0;
-    align *= 9.0;
+    align *= 6.0;
     cohesion *= 10.0;
 
     vec3 flockForce = separate + align + cohesion;
