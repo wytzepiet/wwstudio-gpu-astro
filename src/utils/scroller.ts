@@ -1,4 +1,4 @@
-type Subscriber = (progress?: number) => {};
+type Subscriber = (progress?: number) => any;
 const subscribers: Subscriber[] = [];
 
 export const scroller = {
