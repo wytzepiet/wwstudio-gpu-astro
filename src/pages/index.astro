@@ -67,8 +67,9 @@ import TimelineItem from '@/components/TimelineItem.astro';
 			const rect = query.one('.scroll-timeline')!.getBoundingClientRect();
 			const onTl = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 
-			const rotateX = onTl ? (y - window.innerHeight / 2) / -80 : 0;
-			const rotateY = onTl ? (x - window.innerWidth / 2) / 80 : 0;
+			const scale = 8 / Math.max(window.innerWidth, window.innerHeight);
+			const rotateX = onTl ? (y - window.innerHeight / 2) * -scale : 0;
+			const rotateY = onTl ? (x - window.innerWidth / 2) * scale : 0;
 			gsap.to(inner, { duration: 0.5, rotateX, rotateY });
 		};
 

@@ -1,7 +1,7 @@
 export function initializeBloomEffect(
 	gl: WebGL2RenderingContext,
 	resolution: { x: number; y: number },
-	strength: number = 2.5,
+	strength: number = 3.5,
 	radius: number = 0.9
 ) {
 	const nMips = 5; // Number of mip levels
