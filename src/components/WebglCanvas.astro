@@ -232,7 +232,7 @@ interface Props {
 
 		const buffers = data.map((data) => [createBuffer(gl, data), createBuffer(gl, data)]);
 
-		// Create and bind the radial gradient texture
+		// Create and bind the radial gradient texture :-)
 		const gradientTexture = createRadialGradientTexture(gl, 64)!;
 		const gradientTextureLoc = gl.getUniformLocation(boidsProgram, 'u_gradientTexture');
 
