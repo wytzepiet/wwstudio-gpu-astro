@@ -193,7 +193,9 @@ void main() {
          
                     if(distSq > viewDistSq || distSq < 0.01) continue;
                     
-                    align += vel;
+                    float inverseDist = inversesqrt(distSq);
+
+                    align += vel * inverseDist;
                     cohesion += diff;
                     separate -= diff / distSq;
 
@@ -211,12 +213,12 @@ void main() {
     // separate and cohesion calculations: https://www.desmos.com/calculator/jfmmtst3lv
     separate *= u_viewDist;
 
-    align *= 1.0 / (max(count, 6.0) * u_maxSpeed);
-    cohesion *= 4.0 / (max(count, 18.0) * u_viewDist);
+    align *= u_viewDist / (max(count, 8.0) * u_maxSpeed);
+    cohesion /= (max(count, 18.0) * u_viewDist);
 
     separate *= 1.0;
-    align *= 7.0;
-    cohesion *= 11.0;
+    align *= 5.0;
+    cohesion *= 42.0;
 
     vec3 flockForce = separate + align + cohesion;
     

@@ -22,7 +22,7 @@ import TimelineItem from '@/components/TimelineItem.astro';
 
 	import { query, createQuery } from '../utils/generalUtils';
 	import { scroller } from '@/utils/scroller';
-	import { clamp } from 'three/src/math/MathUtils.js';
+	import { MathUtils } from 'three';
 
 	gsap.registerPlugin(SplitText, ScrollTrigger, Observer, RoughEase);
 
@@ -128,7 +128,7 @@ import TimelineItem from '@/components/TimelineItem.astro';
 	});
 	snapPoints.shift();
 
-	const snapTo = (pos: number) => scroller.to(snapPoints[clamp(pos, 0, snapPoints.length - 1)]);
+	const snapTo = (pos: number) => scroller.to(snapPoints[MathUtils.clamp(pos, 0, snapPoints.length - 1)]);
 	const incrementSnapPos = (increment: number) => {
 		const dists = snapPoints.map((pos) => Math.abs(pos - scroller.top));
 		const current = dists.indexOf(Math.min(...dists));
@@ -144,7 +144,7 @@ import TimelineItem from '@/components/TimelineItem.astro';
 		if (!obs.isDragging || !obs.startX || !obs.x) return;
 		const target = startPos - (obs.x - obs.startX) * 5;
 		window.scrollBy(0, target - window.scrollY);
-		query.one('.bottom-bar')!.style.transform = `translateX(${clamp(target, 0, timelineSize) / -5}px)`;
+		query.one('.bottom-bar')!.style.transform = `translateX(${MathUtils.clamp(target, 0, timelineSize) / -5}px)`;
 		requestAnimationFrame(() => dragBottomBar(startPos));
 	};
 	const obs = Observer.create({
@@ -228,8 +228,8 @@ import TimelineItem from '@/components/TimelineItem.astro';
 				<div class="h-screen w-screen flex flex-col items-center translate-z-7 transform-style-3d">
 					<div class="absolute inset-0 -scale-x-150 scale-y-125 bg-gradient-to-t from-background via-transparent"></div>
 					<div class="uppercase h-full pb-[10vh] flex flex-col gap-2 justify-end transform-style-3d">
-						<h1 class="text-5xl">I can't do magic.</h1>
-						<h1 class="text-7xl translate-z-4">But I can code.</h1>
+						<h1 class="text-4xl">I can't do magic.</h1>
+						<h1 class="text-5xl translate-z-4">But I can code.</h1>
 					</div>
 				</div>
 			</TimelineItem>

@@ -18,7 +18,7 @@ interface Props {
 	const delayAttr = canvas.getAttribute('data-delay');
 	const delay = delayAttr ? parseFloat(delayAttr) : 0;
 
-	const NUM_BOIDS = 20000;
+	const NUM_BOIDS = 10000;
 	let currentBoids = NUM_BOIDS;
 
 	async function runBoids() {
@@ -68,7 +68,7 @@ interface Props {
 		gl.uniform3f(uLoc('u_color1'), ...hexToRgb('#315492'));
 		gl.uniform3f(uLoc('u_color2'), ...hexToRgb('#290529'));
 
-		//gold red
+		// gold red
 		// gl.uniform3f(uLoc('u_color1'), ...hexToRgb('#b47a2d'));
 		// gl.uniform3f(uLoc('u_color2'), ...hexToRgb('#5b0b0b'));
 
@@ -137,7 +137,7 @@ interface Props {
 
 			const target = new THREE.Vector3(x, y, z).unproject(camera);
 			gl.useProgram(boidsProgram);
-			gl.uniform3f(uLoc('u_target'), ...target.toArray());
+			gl.uniform3f(uLoc('u_target'), target.x, target.y, target.z);
 		}
 
 		const randomVec3 = () => {
@@ -163,14 +163,14 @@ interface Props {
 
 		const viewDist = 30;
 		const cellSize = viewDist / 1.2;
-		const boidsPerCell = 16;
+		const boidsPerCell = 20;
 		const canvasSize = new THREE.Vector3(canvas.width, canvas.height, 1000);
 		const gridSize = canvasSize.clone().divideScalar(cellSize);
 		const gridTextureSize = new THREE.Vector2(gridSize.x * gridSize.y, gridSize.z * boidsPerCell);
 
 		gl.uniform1f(uLoc('u_viewDist'), viewDist);
-		gl.uniform3f(uLoc('u_gridSize'), ...gridSize.toArray());
-		gl.uniform2f(uLoc('u_gridTextureSize'), ...gridTextureSize.toArray());
+		gl.uniform3f(uLoc('u_gridSize'), gridSize.x, gridSize.y, gridSize.z);
+		gl.uniform2f(uLoc('u_gridTextureSize'), gridTextureSize.x, gridTextureSize.y);
 		gl.uniform1f(uLoc('u_boidsPerCell'), boidsPerCell);
 
 		gl.useProgram(updateGridProgram);
@@ -180,9 +180,9 @@ interface Props {
 		const gridTextureSizeLoc = gl.getUniformLocation(updateGridProgram, 'u_gridTextureSize');
 		const boidsPerCellLoc = gl.getUniformLocation(updateGridProgram, 'u_boidsPerCell');
 
-		gl.uniform3f(canvasSizeloc, ...canvasSize.toArray());
-		gl.uniform3f(gridSizeLoc, ...gridSize.toArray());
-		gl.uniform2f(gridTextureSizeLoc, ...gridTextureSize.toArray());
+		gl.uniform3f(canvasSizeloc, canvasSize.x, canvasSize.y, canvasSize.z);
+		gl.uniform3f(gridSizeLoc, gridSize.x, gridSize.y, gridSize.z);
+		gl.uniform2f(gridTextureSizeLoc, gridTextureSize.x, gridTextureSize.y);
 		gl.uniform1f(boidsPerCellLoc, boidsPerCell);
 
 		const ext = gl.getExtension('EXT_color_buffer_float');
