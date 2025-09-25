@@ -218,7 +218,7 @@ void main() {
 
     separate *= 1.0;
     align *= 5.0;
-    cohesion *= 42.0;
+    cohesion *= 36.0;
 
     vec3 flockForce = separate + align + cohesion;
     
